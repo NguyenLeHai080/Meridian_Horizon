@@ -11,6 +11,7 @@ from app.core.middlewares.security_headers import SecurityHeadersMiddleware
 from app.modules.auth.api.auth_router import router as auth_router
 from app.modules.dubbing.api.dubbing_router import router as dubbing_router
 from app.modules.system.api.system_router import router as system_router
+from app.modules.admin.api.admin_router import router as admin_router
 
 # Thiết lập ghi log chuẩn hóa
 logging.basicConfig(
@@ -61,6 +62,7 @@ api_v1_prefix = settings.API_V1_STR
 app.include_router(auth_router, prefix=api_v1_prefix)
 app.include_router(dubbing_router, prefix=api_v1_prefix)
 app.include_router(system_router, prefix=api_v1_prefix)
+app.include_router(admin_router, prefix=api_v1_prefix)
 
 @app.get("/", tags=["Root"])
 async def root():

@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
-import { Globe, LogOut, User as UserIcon, CreditCard, Sparkles, Check, UploadCloud } from 'lucide-react';
+import { Globe, LogOut, User as UserIcon, CreditCard, Sparkles, Check, UploadCloud, ShieldAlert } from 'lucide-react';
 import { changeLanguage } from '@/shared/i18n';
 import { Modal } from '@/shared/components/modal/Modal';
 import { Button } from '@/shared/components/ui/Button';
@@ -14,6 +15,7 @@ import useAuthStore from '@/modules/auth/store/authStore';
 import useStudioStore from '../store/studioStore';
 
 export const StudioPage = () => {
+  const navigate = useNavigate();
   const { t, i18n } = useTranslation();
   const { user, logout } = useAuthStore();
   const { credits } = useStudioStore();
@@ -55,6 +57,16 @@ export const StudioPage = () => {
                 <option value="zh" className="bg-gray-900 text-gray-100">中文 (ZH)</option>
               </select>
             </div>
+
+            {/* Nút chuyển sang Trang Quản trị Tool (Admin) */}
+            <button
+              onClick={() => navigate('/admin/dashboard')}
+              className="flex items-center gap-1.5 px-2.5 py-1 bg-amber-500/20 hover:bg-amber-500/30 text-amber-300 border border-amber-500/40 rounded text-[11px] font-semibold transition-all shadow-sm"
+              title="Mở Trang Quản trị Tool"
+            >
+              <ShieldAlert size={12} />
+              <span>Quản trị Tool (Admin)</span>
+            </button>
 
             {/* Thông tin User & Đăng xuất */}
             <div className="flex items-center gap-2 border-l border-gray-800 pl-3">
