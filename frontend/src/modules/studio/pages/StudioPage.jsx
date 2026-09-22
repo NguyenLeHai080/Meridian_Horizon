@@ -33,6 +33,7 @@ import { StudioSidebar } from '../components/StudioSidebar';
 import { WorkflowStepBar } from '../components/WorkflowStepBar';
 import { VideoPlayerPreview } from '../components/VideoPlayerPreview';
 import { ProviderConfigPanel } from '../components/ProviderConfigPanel';
+import { MovieReviewWorkstation } from '../components/MovieReviewWorkstation';
 import { ExecutionLogTerminal } from '../components/ExecutionLogTerminal';
 import { Modal } from '@/shared/components/modal/Modal';
 import { Button } from '@/shared/components/ui/Button';
@@ -72,6 +73,7 @@ const StudioPageContent = () => {
 
   const {
     credits,
+    activeTab,
     subtitles,
     updateSubtitleSegment,
     addSubtitleSegment,
@@ -326,11 +328,17 @@ const StudioPageContent = () => {
         {/* Workflow 5 Steps Bar */}
         <WorkflowStepBar onOpenSelectVideoModal={() => setVideoSelectModalOpen(true)} />
 
-        {/* Center Canvas: Video Player Preview (Left) + Configuration Panel (Right) */}
-        <div className="flex-1 flex min-h-0 overflow-hidden">
-          <VideoPlayerPreview onOpenSubtitleModal={() => setSubtitleModalOpen(true)} />
-          <ProviderConfigPanel />
-        </div>
+        {/* Center Canvas: Video Player Preview (Left) + Configuration Panel (Right) OR Movie Review Workstation */}
+        {activeTab === 'comics' ? (
+          <div className="flex-1 flex min-h-0 overflow-hidden">
+            <MovieReviewWorkstation />
+          </div>
+        ) : (
+          <div className="flex-1 flex min-h-0 overflow-hidden">
+            <VideoPlayerPreview onOpenSubtitleModal={() => setSubtitleModalOpen(true)} />
+            <ProviderConfigPanel />
+          </div>
+        )}
 
         {/* Bottom Execution Terminal Log */}
         <ExecutionLogTerminal />

@@ -8,6 +8,74 @@ const DEFAULT_SUBTITLES = [
   { id: 5, start: '00:00:13.200', end: '00:00:16.500', startSec: 13.2, endSec: 16.5, zh: '万仙俯首，天地为之变色', vi: 'Vạn tiên cúi đầu, cả trời đất vì thế mà đổi sắc.' },
 ];
 
+const DEFAULT_REVIEW_SCENES = [
+  {
+    id: 1,
+    type: 'hook',
+    title: 'Phân đoạn 1: Mở đầu giật gân (Hook)',
+    timecode: '00:00 - 00:15',
+    startSec: 0,
+    endSec: 15,
+    script: 'Đừng bao giờ coi thường một tên ăn mày rách rưới, bởi vì thân phận thực sự của hắn có thể khiến cả hoàng tộc Đại Lục phải run rẩy quỳ gối xin tha mạng...',
+    tone: 'Kịch tính',
+    wordCount: 35,
+    estimatedDuration: '14s',
+    approved: true,
+  },
+  {
+    id: 2,
+    type: 'setup',
+    title: 'Phân đoạn 2: Bối cảnh & Biến cố bị phản bội',
+    timecode: '00:15 - 00:45',
+    startSec: 15,
+    endSec: 45,
+    script: 'Ba năm trước, Lâm Tuyên vốn là đệ nhất kỳ tài của Lâm Gia, thế nhưng trong đêm yến tiệc, hắn lại bị chính vị hôn thê cùng đệ đệ ruột hạ độc phế đi toàn bộ kinh mạch võ công...',
+    tone: 'Bi tráng',
+    wordCount: 42,
+    estimatedDuration: '28s',
+    approved: true,
+  },
+  {
+    id: 3,
+    type: 'turning_point',
+    title: 'Phân đoạn 3: Thức tỉnh Hư Không Thần Tàng',
+    timecode: '00:45 - 01:20',
+    startSec: 45,
+    endSec: 80,
+    script: 'Trong lúc thập tử nhất sinh nơi đáy vực sâu Vạn Kiếp, giọt máu của Lâm Tuyên vô tình đánh thức Hư Không Cổ Ấn phong ấn vạn năm, mở ra cảnh giới Thần Tàng vô thượng...',
+    tone: 'Hồi hộp',
+    wordCount: 38,
+    estimatedDuration: '33s',
+    approved: true,
+  },
+  {
+    id: 4,
+    type: 'climax',
+    title: 'Phân đoạn 4: Trở về & Đồ sát phản nghịch (Climax)',
+    timecode: '01:20 - 02:10',
+    startSec: 80,
+    endSec: 130,
+    script: 'Ngày đại hôn của tiện nhân kia, Lâm Tuyên một thân hắc y phá cửa bước vào. Chỉ bằng một kiếm kinh thiên, vạn tiên cúi đầu, toàn bộ kẻ phản nghịch đều tan thành tro bụi!',
+    tone: 'Bá đạo',
+    wordCount: 45,
+    estimatedDuration: '48s',
+    approved: true,
+  },
+  {
+    id: 5,
+    type: 'outro',
+    title: 'Phân đoạn 5: Kết thúc & Kêu gọi xem tiếp (Outro)',
+    timecode: '02:10 - 02:30',
+    startSec: 130,
+    endSec: 150,
+    script: 'Liệu sau khi san bằng gia tộc, bước chân của Lâm Tuyên sẽ tiến vào Thượng Giới như thế nào? Bấm theo dõi kênh và thả tim để đón xem tiếp tập 24 vào ngày mai nhé!',
+    tone: 'Kêu gọi',
+    wordCount: 36,
+    estimatedDuration: '19s',
+    approved: true,
+  },
+];
+
 export const useStudioStore = create((set, get) => ({
   activeTab: 'dubbing', // 'dubbing' | 'comics'
   currentStep: 1, // 1 to 5
@@ -36,7 +104,7 @@ export const useStudioStore = create((set, get) => ({
   progress: 0,
   _timerIds: [],
 
-  // Danh sách phân đoạn phụ đề song ngữ chi tiết
+  // Danh sách phân đoạn phụ đề song ngữ chi tiết (Dành cho Dubbing)
   subtitles: DEFAULT_SUBTITLES,
   currentSubtitle: DEFAULT_SUBTITLES[0],
 
@@ -56,6 +124,31 @@ export const useStudioStore = create((set, get) => ({
     opacity: 95,
   },
 
+  // ==========================================
+  // STATE CHUYÊN BIỆT CHO MÔ HÌNH REVIEW PHIM & TRUYỆN TRANH
+  // ==========================================
+  reviewScenes: DEFAULT_REVIEW_SCENES,
+  activeSceneId: 1,
+  reviewAspectRatio: '16:9', // '16:9' (YouTube) | '9:16' (TikTok/Shorts)
+  reviewGenre: 'Tiên hiệp / Tu chân bá đạo',
+  reviewPace: 1.15, // 1.0x, 1.15x, 1.25x
+  
+  bgmConfig: {
+    enabled: true,
+    genre: 'Tiên hiệp hoành tráng', // 'Hồi hộp gay cấn' | 'Hài hước vui nhộn' | 'Bi tráng'
+    volume: 30, // 0 - 100
+    autoDucking: true, // Tự giảm volume khi có giọng reviewer
+    duckingPercent: 20,
+  },
+
+  copyrightBypass: {
+    mirror: false, // Lật gương video 180°
+    zoom: 1.05, // Zoom 1.05x né quét bản quyền
+    blurBorder: false, // Khung viền mờ nghệ thuật
+  },
+
+  watermarkText: '@PeiPei_Review_Phim',
+
   // Cấu hình phần cứng & Giọng đọc
   gpuConfig: {
     enabled: true,
@@ -66,11 +159,11 @@ export const useStudioStore = create((set, get) => ({
 
   selectedVoice: 'vi-VN-MinhQuan-Neural',
   voices: [
-    { id: 'vi-VN-MinhQuan-Neural', name: 'Minh Quân', gender: 'Nam', region: 'Miền Bắc', style: 'Trầm ấm, truyền cảm, hợp Tiên hiệp & Review', tag: 'Khuyên dùng' },
+    { id: 'vi-VN-MinhQuan-Neural', name: 'Minh Quân', gender: 'Nam', region: 'Miền Bắc', style: 'Trầm ấm, truyền cảm, chuyên Tiên hiệp & Review Phim', tag: 'Khuyên dùng' },
     { id: 'vi-VN-HoaiAnh-Neural', name: 'Hoài Anh', gender: 'Nữ', region: 'Miền Nam', style: 'Dịu dàng, chuẩn phát thanh viên', tag: 'Hot' },
-    { id: 'vi-VN-ThanhHuong-Neural', name: 'Thanh Hương', gender: 'Nữ', region: 'Miền Bắc', style: 'Nhẹ nhàng, kịch tính, hợp Ngôn tình', tag: 'Phổ biến' },
-    { id: 'vi-VN-NamMC-Pro', name: 'Đức Bảo (MC)', gender: 'Nam', region: 'Miền Bắc', style: 'Hào hùng, dứt khoát, chuyên phim Hành động', tag: 'Pro AI' },
-    { id: 'vi-VN-Saigon-Pro', name: 'Huy Khánh', gender: 'Nam', region: 'Miền Nam', style: 'Gần gũi, phóng khoáng, hợp vlog & ẩm thực', tag: 'Tự nhiên' },
+    { id: 'vi-VN-ThanhHuong-Neural', name: 'Thanh Hương', gender: 'Nữ', region: 'Miền Bắc', style: 'Nhẹ nhàng, kịch tính, hợp Ngôn tình & Anime', tag: 'Phổ biến' },
+    { id: 'vi-VN-NamMC-Pro', name: 'Đức Bảo (MC)', gender: 'Nam', region: 'Miền Bắc', style: 'Hào hùng, dứt khoát, chuyên Phim Hành Động & Kinh dị', tag: 'Pro AI' },
+    { id: 'vi-VN-Saigon-Pro', name: 'Huy Khánh', gender: 'Nam', region: 'Miền Nam', style: 'Gần gũi, phóng khoáng, hợp vlog & phim hài hước', tag: 'Tự nhiên' },
   ],
 
   apiKeys: {
@@ -80,7 +173,6 @@ export const useStudioStore = create((set, get) => ({
     elevenlabs: 'xi-••••••••',
   },
 
-  // Hàng chờ dịch & tải
   videoQueue: [
     { id: 1, name: '神性游戏_第24集_1080p.mp4', size: '158 MB', status: 'Chờ xử lý', addedAt: '14:20' },
     { id: 2, name: 'Đấu_La_Đại_Lục_Phần_2_Tập_60.mp4', size: '210 MB', status: 'Chờ xử lý', addedAt: '14:25' },
@@ -92,16 +184,24 @@ export const useStudioStore = create((set, get) => ({
     { id: 'JOB-899', name: 'Xuyen_khong_tu_tien_tap_01.mp4', duration: '18:20', status: 'Hoàn thành', date: '21/09/2026 19:40', size: '198 MB' },
   ],
 
-  // Nhật ký Terminal
   logs: [
-    { id: 1, text: 'Engine sẵn sàng. Khởi động PeiPei Dub Studio Enterprise v1.5.73.', type: 'info' },
+    { id: 1, text: 'Engine sẵn sàng. Khởi động PeiPei Dub & Movie Review Workstation v1.5.73.', type: 'info' },
     { id: 2, text: 'Tăng tốc phần cứng GPU: NVIDIA CUDA 12.4 đã sẵn sàng.', type: 'success' },
     { id: 3, text: 'Kết nối DeepSeek Cloud API thành công. Độ trễ 45ms.', type: 'success' },
-    { id: 4, text: 'Đã sẵn sàng. Bấm "Bắt đầu dịch" để khởi chạy quy trình tự động.', type: 'info' },
+    { id: 4, text: 'Đã nạp sẵn quy trình Review Phim & Lồng tiếng chuyên nghiệp.', type: 'info' },
   ],
 
   // ================= ACTIONS =================
-  setActiveTab: (tab) => set({ activeTab: tab }),
+  setActiveTab: (tab) => {
+    const { addLog } = get();
+    set({ activeTab: tab });
+    if (tab === 'comics') {
+      addLog('Đã chuyển sang chế độ: [XƯỞNG REVIEW PHIM & TRUYỆN TRANH].', 'success');
+    } else {
+      addLog('Đã chuyển sang chế độ: [DỊCH & LỒNG TIẾNG VIDEO NGUYÊN BẢN].', 'info');
+    }
+  },
+
   setStep: (step) => set({ currentStep: step }),
   setProvider: (provider) => set({ provider }),
   setSourceType: (type) => set({ sourceType: type }),
@@ -112,8 +212,153 @@ export const useStudioStore = create((set, get) => ({
   setSubtitleStyle: (newStyle) => set((state) => ({ subtitleStyle: { ...state.subtitleStyle, ...newStyle } })),
   setMaskConfig: (newMask) => set((state) => ({ maskConfig: { ...state.maskConfig, ...newMask } })),
   setGpuEnabled: (enabled) => set((state) => ({ gpuConfig: { ...state.gpuConfig, enabled } })),
-  
   setApiKeys: (keys) => set((state) => ({ apiKeys: { ...state.apiKeys, ...keys } })),
+
+  // Review Phim Actions
+  setReviewAspectRatio: (ratio) => set({ reviewAspectRatio: ratio }),
+  setReviewGenre: (genre) => set({ reviewGenre: genre }),
+  setReviewPace: (pace) => set({ reviewPace: pace }),
+  setBgmConfig: (newBgm) => set((state) => ({ bgmConfig: { ...state.bgmConfig, ...newBgm } })),
+  setCopyrightBypass: (newBypass) => set((state) => ({ copyrightBypass: { ...state.copyrightBypass, ...newBypass } })),
+  setWatermarkText: (txt) => set({ watermarkText: txt }),
+  setActiveSceneId: (id) => set({ activeSceneId: id }),
+
+  updateReviewScene: (id, updatedFields) => {
+    set((state) => ({
+      reviewScenes: state.reviewScenes.map((s) => (s.id === id ? { ...s, ...updatedFields } : s)),
+    }));
+  },
+
+  addReviewScene: (scene) => {
+    set((state) => {
+      const newId = Date.now();
+      const count = state.reviewScenes.length + 1;
+      const newScene = {
+        id: newId,
+        type: 'custom',
+        title: `Phân đoạn ${count}: Diễn biến mới`,
+        timecode: '02:30 - 03:00',
+        startSec: 150,
+        endSec: 180,
+        script: 'Lời bình review cho phân đoạn tiếp theo...',
+        tone: 'Hồi hộp',
+        wordCount: 20,
+        estimatedDuration: '15s',
+        approved: true,
+        ...scene,
+      };
+      return { reviewScenes: [...state.reviewScenes, newScene], activeSceneId: newId };
+    });
+  },
+
+  removeReviewScene: (id) => {
+    set((state) => {
+      const filtered = state.reviewScenes.filter((s) => s.id !== id);
+      return {
+        reviewScenes: filtered,
+        activeSceneId: filtered[0]?.id || null,
+      };
+    });
+  },
+
+  // 1-Click AI Movie Review Script Generator
+  generateReviewScript: (genreType) => {
+    const { addLog, videoFilename } = get();
+    addLog(`Đang phân tích video [${videoFilename}] và sinh kịch bản Review chuẩn theo thể loại [${genreType || 'Tiên hiệp'}]...`, 'info');
+
+    setTimeout(() => {
+      let generated = [];
+      if (genreType?.includes('Hài hước') || genreType?.includes('Bựa')) {
+        generated = [
+          {
+            id: 1,
+            type: 'hook',
+            title: 'Phân đoạn 1: Mở đầu siêu bựa (Hook)',
+            timecode: '00:00 - 00:15',
+            startSec: 0,
+            endSec: 15,
+            script: 'Thanh niên này vừa mở mắt ra đã thấy mình xuyên không vào chuồng heo của Lâm phủ, đúng là cái số đen như than tổ ong...',
+            tone: 'Hài hước',
+            wordCount: 32,
+            estimatedDuration: '13s',
+            approved: true,
+          },
+          {
+            id: 2,
+            type: 'setup',
+            title: 'Phân đoạn 2: Tấu hài cùng hệ thống',
+            timecode: '00:15 - 00:45',
+            startSec: 15,
+            endSec: 45,
+            script: 'Cứ ngỡ có hệ thống xịn xò làm trùm thiên hạ, ai ngờ hệ thống này bắt hắn phải đi xin ăn đủ 100 ngày mới mở khóa võ công. Đang định đập đầu tự tử thì mỹ nữ xuất hiện...',
+            tone: 'Hài hước',
+            wordCount: 40,
+            estimatedDuration: '25s',
+            approved: true,
+          },
+          {
+            id: 3,
+            type: 'climax',
+            title: 'Phân đoạn 3: Vả mặt gia tộc cực gắt',
+            timecode: '00:45 - 01:30',
+            startSec: 45,
+            endSec: 90,
+            script: 'Tên thiếu gia ngông cuồng định lao vào cướp người, bị main nhà ta cho ăn trọn một cước bay thẳng vào chuồng bò, cả đám đệ tử đứng hình mất 5 giây...',
+            tone: 'Hả hê',
+            wordCount: 38,
+            estimatedDuration: '30s',
+            approved: true,
+          },
+          {
+            id: 4,
+            type: 'outro',
+            title: 'Phân đoạn 4: Kết thúc tấu hài',
+            timecode: '01:30 - 01:50',
+            startSec: 90,
+            endSec: 110,
+            script: 'Liệu tên ăn mày bá đạo này sẽ quậy tung cái tông môn này ra sao? Anh em nhớ thả 1 tim và bấm follow kênh để đón xem tập 2 cười ra nước mắt nhé!',
+            tone: 'Kêu gọi',
+            wordCount: 36,
+            estimatedDuration: '18s',
+            approved: true,
+          },
+        ];
+      } else {
+        generated = DEFAULT_REVIEW_SCENES;
+      }
+
+      set({ reviewScenes: generated, activeSceneId: generated[0]?.id });
+      addLog('✓ AI đã tạo xong kịch bản Review Phim 5 phân đoạn cuốn hút!', 'success');
+    }, 1500);
+  },
+
+  // AI Rewrite single scene
+  rewriteReviewScene: (sceneId, style) => {
+    const { reviewScenes, addLog } = get();
+    const target = reviewScenes.find((s) => s.id === sceneId);
+    if (!target) return;
+
+    addLog(`Đang viết lại phân đoạn [${target.title}] theo phong cách [${style}]...`, 'info');
+
+    setTimeout(() => {
+      let newText = target.script;
+      if (style === 'humorous') {
+        newText = `Tưởng chừng mọi chuyện đã êm xuôi thì cái kết không ai ngờ tới. Thanh niên Lâm Tuyên lại có pha xử lý đi vào lòng đất khiến cả tông môn phải ngơ ngác bật ngửa!`;
+      } else if (style === 'dramatic') {
+        newText = `Sát khí ngút trời bao trùm toàn bộ điện đường. Từng bước chân của Lâm Tuyên như tiếng gọi từ địa ngục, cảnh báo rằng ngày tàn của kẻ phản bội đã điểm!`;
+      } else {
+        newText = `Lâm Tuyên bất ngờ ra tay chớp nhoáng, một chiêu hạ gục kẻ địch khiến tất cả mọi người khiếp sợ.`;
+      }
+
+      set((state) => ({
+        reviewScenes: state.reviewScenes.map((s) =>
+          s.id === sceneId ? { ...s, script: newText, wordCount: newText.split(' ').length } : s
+        ),
+      }));
+
+      addLog(`✓ Đã cập nhật lại lời bình phân đoạn theo phong cách ${style}.`, 'success');
+    }, 1000);
+  },
 
   setVideo: ({ file, url, filename, duration, durationSeconds }) => {
     const { addLog } = get();
@@ -130,15 +375,25 @@ export const useStudioStore = create((set, get) => ({
   },
 
   setCurrentTime: (time) => {
-    const { subtitles } = get();
-    // Tìm phụ đề khớp với time hiện tại
-    const currentSub = subtitles.find(
-      (s) => time >= s.startSec && time <= s.endSec
-    );
-    set({
-      currentTime: time,
-      ...(currentSub ? { currentSubtitle: currentSub } : {}),
-    });
+    const { subtitles, reviewScenes, activeTab } = get();
+    if (activeTab === 'dubbing') {
+      const currentSub = subtitles.find(
+        (s) => time >= s.startSec && time <= s.endSec
+      );
+      set({
+        currentTime: time,
+        ...(currentSub ? { currentSubtitle: currentSub } : {}),
+      });
+    } else {
+      // Trong chế độ Review Phim: tìm phân cảnh khớp time
+      const currentScene = reviewScenes.find(
+        (s) => time >= s.startSec && time <= s.endSec
+      );
+      set({
+        currentTime: time,
+        ...(currentScene ? { activeSceneId: currentScene.id } : {}),
+      });
+    }
   },
 
   setIsPlaying: (isPlaying) => set({ isPlaying }),
@@ -176,80 +431,113 @@ export const useStudioStore = create((set, get) => ({
 
   clearLogs: () => set({ logs: [] }),
 
-  // Bắt đầu quy trình biên dịch và lồng tiếng 5 bước hoàn chỉnh
+  // Chạy tiến trình 5 bước (hỗ trợ cả Dubbing và Review Phim)
   startTranslation: () => {
-    const { isProcessing, addLog, videoFilename } = get();
+    const { isProcessing, addLog, videoFilename, activeTab } = get();
     if (isProcessing) return;
 
     set({ isProcessing: true, progress: 10, currentStep: 1 });
-    addLog(`BẮT ĐẦU: Khởi động chu trình xử lý AI Video Dubbing cho [${videoFilename}]...`, 'info');
 
-    const timers = [];
+    if (activeTab === 'comics') {
+      addLog(`BẮT ĐẦU: Khởi động quy trình sản xuất Video Review Phim triệu view cho [${videoFilename}]...`, 'info');
+      const timers = [];
 
-    // Bước 1: Tách transcript / OCR
-    timers.push(
-      setTimeout(() => {
-        set({ currentStep: 1, progress: 25 });
-        addLog('Bước 1/5: Đang quét khung hình video trích xuất phụ đề (GPU OCR Engine)...', 'info');
-        addLog('Phát hiện 5 câu thoại tiếng Trung gốc từ video timecode 00:00:01 - 00:00:16.', 'success');
-      }, 1200)
-    );
+      timers.push(
+        setTimeout(() => {
+          set({ currentStep: 1, progress: 25 });
+          addLog('Bước 1/5: Tải video gốc và quét phân cảnh AI (Scene Detection)...', 'info');
+          addLog('Đã lọc bỏ các cảnh tĩnh thừa, giữ lại 5 phân đoạn cao trào đắt giá.', 'success');
+        }, 1200)
+      );
 
-    // Bước 2: Dịch AI
-    timers.push(
-      setTimeout(() => {
-        set({ currentStep: 2, progress: 48 });
-        addLog('Bước 2/5: Đang gửi các câu thoại sang DeepSeek Cloud API kèm prompt văn phong...', 'info');
-        addLog('Bản dịch tiếng Việt đã được tinh chỉnh mượt mà theo chuẩn tiên hiệp/kiếm hiệp.', 'success');
-      }, 3000)
-    );
+      timers.push(
+        setTimeout(() => {
+          set({ currentStep: 2, progress: 48 });
+          addLog('Bước 2/5: Biên tập kịch bản Reviewer: Tạo Hook mở đầu giật gân và lời bình...', 'info');
+          addLog('Kịch bản 5 phân đoạn đã được tối ưu theo phong cách Review Tiên Hiệp cuốn hút.', 'success');
+        }, 3000)
+      );
 
-    // Bước 3: Tạo phụ đề SRT
-    timers.push(
-      setTimeout(() => {
-        set({ currentStep: 3, progress: 72 });
-        addLog('Bước 3/5: Tạo tệp phụ đề SRT chuẩn UTF-8 và đồng bộ timecode chính xác...', 'info');
-      }, 4800)
-    );
+      timers.push(
+        setTimeout(() => {
+          set({ currentStep: 3, progress: 70 });
+          addLog('Bước 3/5: Tổng hợp giọng đọc AI Reviewer [Minh Quân - Tốc độ 1.15x]...', 'info');
+        }, 4800)
+      );
 
-    // Bước 4: Tạo giọng đọc AI
-    timers.push(
-      setTimeout(() => {
-        set({ currentStep: 4, progress: 88 });
-        addLog('Bước 4/5: Tổng hợp giọng đọc AI [Minh Quân - Truyền cảm] với tốc độ 1.05x...', 'info');
-        addLog('Đã khớp khẩu hình âm thanh giọng nói với chuyển động nhân vật.', 'success');
-      }, 6500)
-    );
+      timers.push(
+        setTimeout(() => {
+          set({ currentStep: 4, progress: 88 });
+          addLog('Bước 4/5: Hòa âm Nhạc nền BGM [Tiên hiệp hoành tráng] & Kích hoạt Auto-Ducking...', 'info');
+        }, 6500)
+      );
 
-    // Bước 5: Xuất bản hoàn tất
-    timers.push(
-      setTimeout(() => {
-        const { credits, videoFilename } = get();
-        const cost = 120;
-        const newHistory = {
-          id: `JOB-${Date.now().toString().slice(-4)}`,
-          name: videoFilename.split('/').pop() || videoFilename,
-          duration: '00:30',
-          status: 'Hoàn thành',
-          date: new Date().toLocaleString('vi-VN'),
-          size: '38.4 MB',
-        };
+      timers.push(
+        setTimeout(() => {
+          const { credits } = get();
+          const cost = 150;
+          set((state) => ({
+            currentStep: 5,
+            progress: 100,
+            isProcessing: false,
+            credits: Math.max(0, credits - cost),
+            _timerIds: [],
+          }));
+          addLog(`Bước 5/5: Xuất bản Video Review thành công (Đã áp dụng phụ đề chữ vàng & bộ lọc né bản quyền)! Trừ ${cost} credits.`, 'success');
+        }, 8200)
+      );
 
-        set((state) => ({
-          currentStep: 5,
-          progress: 100,
-          isProcessing: false,
-          credits: Math.max(0, credits - cost),
-          projectHistory: [newHistory, ...state.projectHistory],
-          _timerIds: [],
-        }));
+      set({ _timerIds: timers });
+    } else {
+      // Chế độ Dubbing
+      addLog(`BẮT ĐẦU: Khởi động chu trình xử lý AI Video Dubbing cho [${videoFilename}]...`, 'info');
+      const timers = [];
 
-        addLog(`Bước 5/5: Xuất bản hoàn tất! Đã lưu video vào thư mục đầu ra. Trừ ${cost} credits.`, 'success');
-        addLog('HOÀN THÀNH: Bạn có thể phát video hoặc mở tệp SRT để kiểm tra thành phẩm.', 'success');
-      }, 8200)
-    );
+      timers.push(
+        setTimeout(() => {
+          set({ currentStep: 1, progress: 25 });
+          addLog('Bước 1/5: Đang quét khung hình video trích xuất phụ đề (GPU OCR Engine)...', 'info');
+        }, 1200)
+      );
 
-    set({ _timerIds: timers });
+      timers.push(
+        setTimeout(() => {
+          set({ currentStep: 2, progress: 48 });
+          addLog('Bước 2/5: Đang gửi các câu thoại sang DeepSeek Cloud API kèm prompt văn phong...', 'info');
+        }, 3000)
+      );
+
+      timers.push(
+        setTimeout(() => {
+          set({ currentStep: 3, progress: 72 });
+          addLog('Bước 3/5: Tạo tệp phụ đề SRT chuẩn UTF-8 và đồng bộ timecode chính xác...', 'info');
+        }, 4800)
+      );
+
+      timers.push(
+        setTimeout(() => {
+          set({ currentStep: 4, progress: 88 });
+          addLog('Bước 4/5: Tổng hợp giọng đọc AI [Minh Quân - Truyền cảm]...', 'info');
+        }, 6500)
+      );
+
+      timers.push(
+        setTimeout(() => {
+          const { credits } = get();
+          const cost = 120;
+          set((state) => ({
+            currentStep: 5,
+            progress: 100,
+            isProcessing: false,
+            credits: Math.max(0, credits - cost),
+            _timerIds: [],
+          }));
+          addLog(`Bước 5/5: Xuất bản hoàn tất! Đã lưu video vào thư mục đầu ra. Trừ ${cost} credits.`, 'success');
+        }, 8200)
+      );
+
+      set({ _timerIds: timers });
+    }
   },
 
   cancelTranslation: () => {
@@ -260,10 +548,9 @@ export const useStudioStore = create((set, get) => ({
       _timerIds: [],
       progress: 0,
     });
-    addLog('ĐÃ HỦY: Tiến trình biên dịch đã được người dùng dừng lại.', 'warning');
+    addLog('ĐÃ HỦY: Tiến trình đã được người dùng dừng lại.', 'warning');
   },
 
-  // Xuất file SRT chuẩn
   exportSrtContent: () => {
     const { subtitles } = get();
     return subtitles

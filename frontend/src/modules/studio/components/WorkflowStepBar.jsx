@@ -22,13 +22,23 @@ export const WorkflowStepBar = ({ onOpenSelectVideoModal }) => {
     addLog,
   } = useStudioStore();
 
-  const steps = [
+  const dubbingSteps = [
     { id: 1, label: '1. Tách transcript' },
     { id: 2, label: '2. Dịch' },
     { id: 3, label: '3. Tạo phụ đề' },
     { id: 4, label: '4. Tạo giọng' },
     { id: 5, label: '5. Xuất bản' },
   ];
+
+  const reviewSteps = [
+    { id: 1, label: '1. Nạp phim bộ' },
+    { id: 2, label: '2. Cắt highlight' },
+    { id: 3, label: '3. Kịch bản AI' },
+    { id: 4, label: '4. Thu âm & BGM' },
+    { id: 5, label: '5. Xuất bản review' },
+  ];
+
+  const steps = activeTab === 'comics' ? reviewSteps : dubbingSteps;
 
   // Xử lý mở hộp thoại chọn Video (Ưu tiên Electron Native File Dialog, Fallback Web Input)
   const handleSelectVideo = async () => {
@@ -121,14 +131,14 @@ export const WorkflowStepBar = ({ onOpenSelectVideoModal }) => {
           </button>
           <button
             onClick={() => setActiveTab('comics')}
-            className={`flex items-center gap-1.5 px-4 py-1.5 rounded-lg text-xs font-semibold transition-all cursor-pointer ${
+            className={`flex items-center gap-1.5 px-4 py-1.5 rounded-lg text-xs font-bold transition-all cursor-pointer ${
               activeTab === 'comics'
                 ? 'bg-gradient-to-r from-purple-600 to-indigo-600 text-white shadow-md shadow-purple-950/50'
                 : 'bg-[#12192b] text-gray-400 hover:text-white border border-gray-800'
             }`}
           >
             <Layers size={13} />
-            <span>Review Truyện Tranh</span>
+            <span>Review Phim & Truyện Tranh</span>
           </button>
         </div>
 
@@ -153,8 +163,8 @@ export const WorkflowStepBar = ({ onOpenSelectVideoModal }) => {
           <input
             type="text"
             readOnly
-            value={videoFilename || 'Chưa chọn video...'}
-            placeholder="Nhấp 'Chọn video' để mở tệp từ máy tính"
+            value={videoFilename || (activeTab === 'comics' ? 'Chưa nạp tập phim review...' : 'Chưa chọn video...')}
+            placeholder={activeTab === 'comics' ? 'Chọn video tập phim cần cắt cảnh review...' : 'Nhấp \'Chọn video\' để mở tệp từ máy tính'}
             className="w-full bg-[#141d30] border border-gray-700/80 rounded-lg pl-3 pr-8 py-1.5 text-xs text-cyan-300 font-sans focus:outline-none truncate"
           />
           {videoFilename && (
@@ -188,16 +198,16 @@ export const WorkflowStepBar = ({ onOpenSelectVideoModal }) => {
             title="Dừng tiến trình hiện tại"
           >
             <Square size={13} fill="currentColor" />
-            <span>Dừng dịch</span>
+            <span>{activeTab === 'comics' ? 'Dừng xử lý' : 'Dừng dịch'}</span>
           </button>
         ) : (
           <button
             onClick={startTranslation}
             className="flex items-center gap-1.5 px-4 py-1.5 rounded-lg text-xs font-bold bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-500 hover:to-indigo-500 text-white transition-all shadow-md shadow-purple-900/40 cursor-pointer flex-shrink-0 active:scale-[0.99]"
-            title="Chạy quy trình 5 bước dịch và lồng tiếng"
+            title={activeTab === 'comics' ? 'Chạy quy trình 5 bước dựng Review Phim hoàn chỉnh' : 'Chạy quy trình 5 bước dịch và lồng tiếng'}
           >
             <Play size={13} fill="currentColor" />
-            <span>Bắt đầu dịch</span>
+            <span>{activeTab === 'comics' ? 'Bắt đầu tạo Review' : 'Bắt đầu dịch'}</span>
           </button>
         )}
 
