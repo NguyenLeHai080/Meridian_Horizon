@@ -363,12 +363,42 @@ class SetupWizardApp:
                     src_exe = c
                     break
 
+            # Đóng tiến trình cũ nếu đang chạy ngầm trên máy để tránh lỗi WinError 32
+            try:
+                subprocess.run(["taskkill", "/F", "/IM", "PeiPeiDub.exe"], capture_output=True)
+                time.sleep(0.3)
+            except Exception:
+                pass
+
             self.status_lbl.configure(text=f"Đang sao chép tệp thực thi 64-Bit vào {install_dir}...")
             self.progress_bar["value"] = 25
             self.root.update_idletasks()
 
             if src_exe:
-                shutil.copy2(src_exe, target_exe)
+                # Sao chép an toàn với cơ chế thử lại nếu tệp bị khóa
+                copied = False
+                for attempt in range(3):
+                    try:
+                        if os.path.exists(target_exe):
+                            try:
+                                old_bak = target_exe + f".old_{int(time.time())}"
+                                os.rename(target_exe, old_bak)
+                                try:
+                                    os.remove(old_bak)
+                                except Exception:
+                                    pass
+                            except Exception:
+                                pass
+                        shutil.copy2(src_exe, target_exe)
+                        copied = True
+                        break
+                    except Exception:
+                        subprocess.run(["taskkill", "/F", "/IM", "PeiPeiDub.exe"], capture_output=True)
+                        time.sleep(0.5)
+
+                if not copied:
+                    shutil.copy2(src_exe, target_exe)
+
                 sz_mb = round(os.path.getsize(target_exe) / (1024 * 1024), 2)
                 self.log_box.insert("end", f"[OK] Đã sao chép PeiPeiDub.exe gốc 64-Bit ({sz_mb} MB)\n")
             else:
