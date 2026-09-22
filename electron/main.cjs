@@ -125,9 +125,9 @@ async function createWindow() {
     iconPath = path.join(__dirname, '../resources/icon.ico');
   }
 
-  // Kích thước chuẩn: nếu chưa kích hoạt thì mở compact 580x680, nếu đã kích hoạt thì 1340x840
-  const winWidth = hasActiveLicense ? 1340 : 580;
-  const winHeight = hasActiveLicense ? 840 : 680;
+  // Kích thước chuẩn: nếu chưa kích hoạt thì mở compact 560x660, nếu đã kích hoạt thì 1340x840
+  const winWidth = hasActiveLicense ? 1340 : 560;
+  const winHeight = hasActiveLicense ? 840 : 660;
   const winTitle = hasActiveLicense 
     ? 'PeiPei Dub Studio 1.5.73 - Dịch & Lồng tiếng Video' 
     : 'PeiPei Dub Studio 1.5.73 - Kích hoạt Bản quyền';
@@ -135,13 +135,13 @@ async function createWindow() {
   mainWindow = new BrowserWindow({
     width: winWidth,
     height: winHeight,
-    minWidth: hasActiveLicense ? 1040 : 540,
-    minHeight: hasActiveLicense ? 680 : 640,
+    minWidth: hasActiveLicense ? 1040 : 520,
+    minHeight: hasActiveLicense ? 680 : 620,
     title: winTitle,
     icon: fs.existsSync(iconPath) ? iconPath : undefined,
     backgroundColor: '#0b0f17',
     autoHideMenuBar: true,
-    show: true,
+    show: false, // TUYỆT ĐỐI KHÔNG SHOW SỚM ĐỂ TRÁNH MÀN HÌNH ĐEN!
     webPreferences: {
       preload: path.join(__dirname, 'preload.cjs'),
       contextIsolation: true,
@@ -158,26 +158,58 @@ async function createWindow() {
     log(`[Renderer Process Gone] reason: ${details.reason}, exitCode: ${details.exitCode}`);
   });
 
-  mainWindow.webContents.on('did-finish-load', () => {
-    log('WebContents did-finish-load successfully');
+  mainWindow.once('ready-to-show', () => {
+    log('mainWindow ready-to-show - showing window immediately');
+    if (mainWindow) {
+      mainWindow.show();
+      mainWindow.focus();
+    }
   });
+
+  // Fallback an toàn: nếu máy quá chậm sau 4000ms mới hiện
+  setTimeout(() => {
+    if (mainWindow && !mainWindow.isVisible()) {
+      log('Fallback show timeout triggered after 4s');
+      mainWindow.show();
+      mainWindow.focus();
+    }
+  }, 4000);
 
   mainWindow.webContents.on('did-fail-load', (event, errorCode, errorDescription) => {
     log(`WebContents did-fail-load: ${errorCode} - ${errorDescription}`);
+    if (mainWindow) mainWindow.show();
   });
 
   const targetUrl = `http://127.0.0.1:${port}/tool`;
   log(`Loading URL: ${targetUrl}`);
   mainWindow.loadURL(targetUrl);
 
-  // Xử lý sự kiện IPC
+  // Cung cấp bản quyền đã lưu trên đĩa cho Renderer
+  ipcMain.handle('get-license', () => {
+    try {
+      const licPath = getLicenseFilePath();
+      if (fs.existsSync(licPath)) {
+        const data = JSON.parse(fs.readFileSync(licPath, 'utf8'));
+        log('get-license returned license data to renderer');
+        return data;
+      }
+    } catch (e) {
+      log('get-license error: ' + e);
+    }
+    return null;
+  });
+
+  // Xử lý sự kiện IPC Kích hoạt thành công
   ipcMain.on('activate-success', (event, payload) => {
+    log(`activate-success received: ${JSON.stringify(payload)}`);
     if (payload) {
       try {
         const licPath = getLicenseFilePath();
         fs.mkdirSync(path.dirname(licPath), { recursive: true });
         fs.writeFileSync(licPath, JSON.stringify(payload, null, 2), 'utf8');
-      } catch (e) {}
+      } catch (e) {
+        log('Error writing license: ' + e);
+      }
     }
 
     if (mainWindow) {

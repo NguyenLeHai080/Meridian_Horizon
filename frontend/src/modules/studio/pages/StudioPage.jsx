@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { Globe, LogOut, User as UserIcon, CreditCard, Sparkles, Check, UploadCloud, ShieldAlert } from 'lucide-react';
@@ -15,6 +15,30 @@ import { LicenseGatekeeper } from '../components/LicenseGatekeeper';
 import useAuthStore from '@/modules/auth/store/authStore';
 import useStudioStore from '../store/studioStore';
 
+class StudioErrorBoundary extends React.Component {
+  constructor(props) {
+    super(props);
+    this.state = { hasError: false, error: null };
+  }
+  static getDerivedStateFromError(error) {
+    return { hasError: true, error };
+  }
+  componentDidCatch(error, info) {
+    console.error("Studio render error:", error, info);
+  }
+  render() {
+    if (this.state.hasError) {
+      return (
+        <div className="p-6 bg-[#0c101c] text-rose-400 font-mono text-xs">
+          <h3 className="text-base font-bold mb-2">Đã xảy ra lỗi giao diện:</h3>
+          <pre className="p-3 bg-black/50 rounded border border-rose-900">{this.state.error?.toString()}</pre>
+        </div>
+      );
+    }
+    return this.props.children;
+  }
+}
+
 export const StudioPage = () => {
   const navigate = useNavigate();
   const { t, i18n } = useTranslation();
@@ -30,6 +54,18 @@ export const StudioPage = () => {
       return null;
     }
   });
+
+  // Đồng bộ bản quyền trực tiếp từ tệp lưu trữ trên máy tính qua Electron IPC
+  useEffect(() => {
+    if (window.electronAPI && window.electronAPI.getLicense) {
+      window.electronAPI.getLicense().then((lic) => {
+        if (lic && lic.license_key) {
+          localStorage.setItem('peipei_license', JSON.stringify(lic));
+          setLicenseInfo(lic);
+        }
+      }).catch(() => {});
+    }
+  }, []);
 
   // State cho các Shared Modals
   const [isCreditModalOpen, setCreditModalOpen] = useState(false);
@@ -93,7 +129,8 @@ export const StudioPage = () => {
   const [selectedPackage, setSelectedPackage] = useState('pack_50k');
 
   return (
-    <div className="flex h-screen w-screen bg-[#070a12] text-gray-100 overflow-hidden font-sans relative">
+    <StudioErrorBoundary>
+      <div className="flex h-screen w-screen bg-[#070a12] text-gray-100 overflow-hidden font-sans relative">
       {/* 1. Left Sidebar */}
       <StudioSidebar
         onOpenCreditModal={() => setCreditModalOpen(true)}
@@ -433,6 +470,7 @@ export const StudioPage = () => {
         </div>
       </Modal>
     </div>
+    </StudioErrorBoundary>
   );
 };
 

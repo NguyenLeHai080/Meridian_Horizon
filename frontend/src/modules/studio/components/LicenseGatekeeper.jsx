@@ -238,34 +238,15 @@ export const LicenseGatekeeper = ({ onActivated, onClose }) => {
           </div>
         </div>
 
-        {/* Quick Sample Keys Picker (Cyber Style Grid) */}
-        <div className="p-3 bg-[#070b14]/70 border border-gray-800 rounded-xl space-y-2">
-          <span className="text-[10.5px] font-bold text-gray-400 block uppercase tracking-wider">
-            ⚡ Hoặc chọn nhanh mã Key mẫu đã cấp trong hệ thống:
-          </span>
-          <div className="grid grid-cols-2 gap-2">
-            {[
-              { key: 'JACS-9B21-4CA0-D1D1', desc: 'VIP Doanh Nghiệp (43 ngày)' },
-              { key: 'MH-7782-B2A1-0912', desc: 'Gói Pro AI (180 ngày)' },
-              { key: 'VIP-FOREVER-8899', desc: 'Vĩnh Viễn (Lifetime VIP)' },
-              { key: 'PEIPEI-PRO-2026', desc: 'Bản quyền Thử nghiệm (30 ngày)' },
-            ].map((item, idx) => (
-              <button
-                key={idx}
-                onClick={() => {
-                  setLicenseKey(item.key);
-                  handleVerify(item.key);
-                }}
-                className="p-2.5 rounded-lg bg-[#0c1322] hover:bg-emerald-950/40 border border-gray-800 hover:border-emerald-500/50 text-left transition-all cursor-pointer group shadow-sm"
-              >
-                <div className="font-mono text-xs font-bold text-cyan-300 group-hover:text-emerald-300 transition-colors">
-                  {item.key}
-                </div>
-                <div className="text-[10px] text-gray-400 group-hover:text-gray-300 transition-colors mt-0.5">
-                  {item.desc}
-                </div>
-              </button>
-            ))}
+        {/* Hướng dẫn nhận mã bản quyền từ Quản trị viên */}
+        <div className="p-3.5 bg-[#070b14]/70 border border-emerald-500/20 rounded-xl space-y-1.5 text-[11px] text-gray-300">
+          <div className="font-bold text-emerald-400 flex items-center gap-1.5 uppercase text-[10.5px] tracking-wider">
+            <span>🛡️ Quy trình cấp phép bản quyền máy trạm:</span>
+          </div>
+          <div className="space-y-1 text-gray-400 pl-1 leading-relaxed">
+            <p>1. Nhấp nút <strong className="text-cyan-300">Sao chép</strong> mã phần cứng (HWID) ở trên.</p>
+            <p>2. Gửi mã HWID này cho <strong>Quản trị viên</strong> để đăng ký bản quyền theo máy.</p>
+            <p>3. Dán mã License Key nhận được vào ô bên trên rồi nhấn <strong>Xác thực &amp; Vào Studio</strong>.</p>
           </div>
         </div>
 
