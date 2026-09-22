@@ -8,6 +8,8 @@ import {
   Check,
   Shield,
   ShieldAlert,
+  Lock,
+  Unlock,
   Edit2,
   Trash2,
   Calendar,
@@ -19,7 +21,10 @@ import {
   Clock,
   Globe,
   Bell,
-  Monitor
+  Monitor,
+  RotateCw,
+  SlidersHorizontal,
+  ChevronDown
 } from 'lucide-react';
 import { AdminSidebar } from '../components/AdminSidebar';
 import { Modal } from '@/shared/components/modal/Modal';
@@ -151,91 +156,101 @@ export const AdminLicensesPage = () => {
   };
 
   return (
-    <div className="flex h-screen w-screen bg-[#0b0f19] text-gray-100 overflow-hidden font-sans">
+    <div className="flex h-screen w-screen bg-[#f8fafc] text-gray-800 overflow-hidden font-sans antialiased">
+      {/* 1. DARK SIDEBAR CHUẨN MINTFORGE */}
       <AdminSidebar />
 
+      {/* 2. MAIN CANVAS CHUẨN LIGHT THEME NHƯ HÌNH MẪU */}
       <div className="flex-1 flex flex-col min-w-0 h-full overflow-hidden">
-        {/* TOP BAR CHUẨN MINTFORGE */}
-        <header className="h-14 flex-shrink-0 bg-[#090d16] border-b border-gray-800/80 px-6 flex items-center justify-between text-xs select-none">
-          <div className="relative w-72">
-            <Search size={14} className="absolute left-3 top-2.5 text-gray-500" />
+        {/* TOP BAR TRẮNG TINH TẾ */}
+        <header className="h-14 flex-shrink-0 bg-white border-b border-gray-200 px-6 flex items-center justify-between text-xs select-none shadow-sm z-10">
+          <div className="relative w-80">
+            <Search size={14} className="absolute left-3 top-2.5 text-gray-400" />
             <input
               type="text"
               placeholder="Tìm tên hoặc email..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              className="w-full bg-[#111625] border border-gray-800 rounded-lg pl-9 pr-3 py-1.5 text-xs text-gray-200 placeholder-gray-500 focus:outline-none focus:border-rose-500/50 transition-all"
+              className="w-full bg-[#f8fafc] border border-gray-200 rounded-lg pl-9 pr-8 py-1.5 text-xs text-gray-800 placeholder-gray-400 focus:outline-none focus:border-orange-500 focus:bg-white transition-all shadow-inner"
             />
+            <span className="absolute right-2.5 top-2 px-1.5 py-0.5 rounded bg-gray-200 text-gray-500 text-[10px] font-mono">
+              ⌘K
+            </span>
           </div>
 
           <div className="flex items-center gap-3">
-            {/* Status Online Indicator */}
-            <div className="flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-emerald-950/60 border border-emerald-500/30 text-emerald-400 font-semibold text-[11px]">
-              <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-ping" />
+            {/* Status 0 Máy Online */}
+            <div className="flex items-center gap-1.5 px-3 py-1 rounded-full bg-emerald-50 border border-emerald-200 text-emerald-600 font-semibold text-[11px]">
+              <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
               <span>{onlineCount} Máy Online</span>
             </div>
 
+            {/* Refresh Button */}
             <button
               onClick={() => fetchLicenses()}
-              className="p-2 rounded-lg bg-[#111625] hover:bg-gray-800 text-gray-400 hover:text-gray-200 border border-gray-800 transition-colors"
+              className="p-2 rounded-lg bg-gray-50 hover:bg-gray-100 text-gray-600 border border-gray-200 transition-colors shadow-sm"
               title="Làm mới dữ liệu"
             >
-              <RefreshCw size={13} className={isLoading ? 'animate-spin' : ''} />
+              <RefreshCw size={13} className={isLoading ? 'animate-spin text-orange-500' : ''} />
             </button>
 
-            <button className="p-2 rounded-lg bg-[#111625] hover:bg-gray-800 text-gray-400 hover:text-gray-200 border border-gray-800 transition-colors relative">
+            {/* Notification Bell */}
+            <button className="p-2 rounded-lg bg-gray-50 hover:bg-gray-100 text-gray-600 border border-gray-200 transition-colors relative shadow-sm">
               <Bell size={13} />
               {expiredCount > 0 && (
                 <span className="absolute top-1 right-1 w-2 h-2 rounded-full bg-rose-500" />
               )}
             </button>
 
-            {/* Language */}
-            <div className="flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-[#111625] border border-gray-800 text-gray-300 text-[11px] font-medium">
+            {/* Language Selector */}
+            <div className="flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-gray-50 border border-gray-200 text-gray-700 text-[11px] font-medium shadow-sm">
               <span>🇻🇳</span>
               <span>Tiếng Việt</span>
+              <ChevronDown size={12} className="text-gray-400" />
             </div>
 
-            {/* User Profile */}
-            <div className="flex items-center gap-2 pl-2 border-l border-gray-800">
-              <div className="w-7 h-7 rounded-lg bg-gradient-to-tr from-rose-500 to-amber-500 flex items-center justify-center font-bold text-white text-xs">
+            {/* User Profile Avatar */}
+            <div className="flex items-center gap-2 pl-2 border-l border-gray-200">
+              <div className="w-8 h-8 rounded-full bg-[#f97316] flex items-center justify-center font-bold text-white text-xs shadow-sm">
                 AD
               </div>
               <div className="leading-tight text-left">
-                <div className="font-semibold text-gray-200 text-xs">Superadmin</div>
-                <div className="text-[10px] text-gray-500 uppercase font-bold">ADMIN</div>
+                <div className="font-bold text-gray-800 text-xs">Superadmin</div>
+                <div className="text-[10px] text-gray-400 font-semibold uppercase">ADMIN</div>
               </div>
             </div>
           </div>
         </header>
 
-        {/* MAIN BODY SCROLLABLE */}
+        {/* MAIN BODY SCROLLABLE NỀN XÁM NHẸ #f8fafc */}
         <main className="flex-1 overflow-y-auto scrollable-body p-6 space-y-6">
           {/* Breadcrumb & Section Header */}
           <div className="space-y-2">
             <div className="flex items-center gap-2 text-[11px] text-gray-500">
-              <span>JACS Studio</span>
+              <span className="flex items-center gap-1">
+                <span>🏠</span> JACS Studio
+              </span>
               <span>&gt;</span>
               <span>Quản trị hệ thống</span>
               <span>&gt;</span>
-              <span className="text-gray-300 font-medium bg-[#141b2d] px-2 py-0.5 rounded border border-gray-800">
+              <span className="text-orange-600 font-semibold bg-orange-50 px-2 py-0.5 rounded border border-orange-200">
                 Quản lý máy người dùng
               </span>
             </div>
 
             <div className="flex items-center justify-between pt-1">
               <div className="flex items-center gap-3">
-                <div className="w-10 h-10 rounded-2xl bg-orange-500/20 border border-orange-500/30 flex items-center justify-center text-orange-400 shadow-md shadow-orange-950/30">
-                  <Users size={20} />
+                <div className="w-11 h-11 rounded-2xl bg-gradient-to-tr from-orange-500 to-amber-500 flex items-center justify-center text-white shadow-md shadow-orange-500/20">
+                  <Users size={22} />
                 </div>
                 <div>
                   <div className="flex items-center gap-2.5">
-                    <h2 className="text-xl font-bold text-gray-100">Quản lý máy người dùng</h2>
-                    <span className="px-2 py-0.5 rounded-full bg-emerald-950/60 border border-emerald-500/30 text-emerald-400 text-[11px] font-semibold">
+                    <h2 className="text-xl font-bold text-gray-900 tracking-tight">Quản lý máy người dùng</h2>
+                    <span className="px-2.5 py-0.5 rounded-full bg-emerald-50 border border-emerald-200 text-emerald-600 text-[11px] font-bold">
                       ● {onlineCount} Online
                     </span>
                   </div>
-                  <p className="text-xs text-gray-400 mt-0.5">
+                  <p className="text-xs text-gray-500 mt-0.5">
                     Cấp phát bản quyền, khóa thiết bị, gia hạn thuê bao và giám sát phiên máy khách thời gian thực.
                   </p>
                 </div>
@@ -244,15 +259,15 @@ export const AdminLicensesPage = () => {
               <div className="flex items-center gap-2.5">
                 <button
                   onClick={() => fetchLicenses()}
-                  className="flex items-center gap-1.5 px-3 py-2 rounded-xl bg-[#141b2d] hover:bg-gray-800 text-gray-300 border border-gray-800 text-xs font-semibold transition-all shadow-sm"
+                  className="flex items-center gap-1.5 px-3 py-2 rounded-xl bg-white hover:bg-gray-50 text-gray-700 border border-gray-200 text-xs font-semibold transition-all shadow-sm active:scale-95"
                 >
-                  <RefreshCw size={13} className={isLoading ? 'animate-spin' : ''} />
+                  <RefreshCw size={13} className={isLoading ? 'animate-spin text-orange-500' : ''} />
                   <span>Làm mới</span>
                 </button>
 
                 <button
                   onClick={() => setCreateModalOpen(true)}
-                  className="flex items-center gap-2 px-4 py-2 rounded-xl bg-gradient-to-r from-orange-500 to-amber-600 hover:from-orange-600 hover:to-amber-700 text-white text-xs font-bold transition-all shadow-lg shadow-orange-900/30 active:scale-95"
+                  className="flex items-center gap-2 px-4 py-2 rounded-xl bg-gradient-to-r from-orange-500 to-amber-600 hover:from-orange-600 hover:to-amber-700 text-white text-xs font-bold transition-all shadow-md shadow-orange-500/25 active:scale-95 cursor-pointer"
                 >
                   <Plus size={15} />
                   <span>+ Cấp License / Tạo User</span>
@@ -261,120 +276,128 @@ export const AdminLicensesPage = () => {
             </div>
           </div>
 
-          {/* 4 STATS CARDS CHUẨN MINTFORGE */}
+          {/* 4 STATS CARDS CHUẨN MINTFORGE - NỀN TRẮNG BORDERS NHẸ */}
           <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
             {/* CARD 1: TỔNG NGƯỜI DÙNG */}
-            <div className="p-4 rounded-2xl bg-[#0f1524] border border-gray-800/90 flex items-center gap-3.5 shadow-sm">
-              <div className="w-11 h-11 rounded-xl bg-orange-500/15 border border-orange-500/30 flex items-center justify-center text-orange-400">
-                <Users size={20} />
+            <div className="p-4 rounded-2xl bg-white border border-gray-200/80 flex items-center gap-3.5 shadow-sm hover:shadow-md transition-shadow">
+              <div className="w-12 h-12 rounded-xl bg-orange-50 border border-orange-100 flex items-center justify-center text-orange-500">
+                <Users size={22} />
               </div>
               <div className="space-y-0.5">
                 <p className="text-[10px] uppercase font-bold text-gray-400 tracking-wider">TỔNG NGƯỜI DÙNG</p>
-                <p className="text-xl font-extrabold text-gray-100">{totalCount}</p>
-                <p className="text-[11px] text-gray-400 flex items-center gap-1">
-                  <span className="text-orange-400">●</span> Toàn bộ bản quyền máy khách
+                <p className="text-2xl font-extrabold text-gray-900 leading-tight">{totalCount}</p>
+                <p className="text-[11px] text-gray-500 flex items-center gap-1">
+                  <span className="text-orange-500">●</span> Toàn bộ bản quyền máy khách
                 </p>
               </div>
             </div>
 
             {/* CARD 2: ĐANG HOẠT ĐỘNG */}
-            <div className="p-4 rounded-2xl bg-[#0f1524] border border-gray-800/90 flex items-center gap-3.5 shadow-sm">
-              <div className="w-11 h-11 rounded-xl bg-emerald-500/15 border border-emerald-500/30 flex items-center justify-center text-emerald-400">
-                <CheckCircle2 size={20} />
+            <div className="p-4 rounded-2xl bg-white border border-gray-200/80 flex items-center gap-3.5 shadow-sm hover:shadow-md transition-shadow">
+              <div className="w-12 h-12 rounded-xl bg-emerald-50 border border-emerald-100 flex items-center justify-center text-emerald-500">
+                <CheckCircle2 size={22} />
               </div>
               <div className="space-y-0.5">
                 <p className="text-[10px] uppercase font-bold text-gray-400 tracking-wider">ĐANG HOẠT ĐỘNG</p>
-                <p className="text-xl font-extrabold text-gray-100">{activeCount}</p>
-                <p className="text-[11px] text-gray-400 flex items-center gap-1">
-                  <span className="text-emerald-400">⚡</span> {totalCount > 0 ? Math.round((activeCount / totalCount) * 100) : 0}% tỷ lệ hoạt động hợp lệ
+                <p className="text-2xl font-extrabold text-gray-900 leading-tight">{activeCount}</p>
+                <p className="text-[11px] text-gray-500 flex items-center gap-1">
+                  <span className="text-emerald-500 font-bold">⚡</span> {totalCount > 0 ? Math.round((activeCount / totalCount) * 100) : 0}% tỷ lệ hoạt động hợp lệ
                 </p>
               </div>
             </div>
 
             {/* CARD 3: HẾT HẠN / KHÓA */}
-            <div className="p-4 rounded-2xl bg-[#0f1524] border border-gray-800/90 flex items-center gap-3.5 shadow-sm">
-              <div className="w-11 h-11 rounded-xl bg-rose-500/15 border border-rose-500/30 flex items-center justify-center text-rose-400">
-                <AlertCircle size={20} />
+            <div className="p-4 rounded-2xl bg-white border border-gray-200/80 flex items-center gap-3.5 shadow-sm hover:shadow-md transition-shadow">
+              <div className="w-12 h-12 rounded-xl bg-rose-50 border border-rose-100 flex items-center justify-center text-rose-500">
+                <AlertCircle size={22} />
               </div>
               <div className="space-y-0.5">
                 <p className="text-[10px] uppercase font-bold text-gray-400 tracking-wider">HẾT HẠN / KHÓA</p>
-                <p className="text-xl font-extrabold text-rose-400">{expiredCount + lockedCount}</p>
-                <p className="text-[11px] text-gray-400 flex items-center gap-1">
-                  <span className="text-rose-400">⚠️</span> {expiredCount} hết hạn / {lockedCount} khóa
+                <p className="text-2xl font-extrabold text-rose-600 leading-tight">{expiredCount + lockedCount}</p>
+                <p className="text-[11px] text-gray-500 flex items-center gap-1">
+                  <span className="text-rose-500">⚠️</span> {expiredCount} hết hạn / {lockedCount} khóa
                 </p>
               </div>
             </div>
 
             {/* CARD 4: BẢN QUYỀN & AI PRO */}
-            <div className="p-4 rounded-2xl bg-[#0f1524] border border-gray-800/90 flex items-center gap-3.5 shadow-sm">
-              <div className="w-11 h-11 rounded-xl bg-blue-500/15 border border-blue-500/30 flex items-center justify-center text-blue-400">
-                <Sparkles size={20} />
+            <div className="p-4 rounded-2xl bg-white border border-gray-200/80 flex items-center gap-3.5 shadow-sm hover:shadow-md transition-shadow">
+              <div className="w-12 h-12 rounded-xl bg-blue-50 border border-blue-100 flex items-center justify-center text-blue-500">
+                <Sparkles size={22} />
               </div>
               <div className="space-y-0.5">
                 <p className="text-[10px] uppercase font-bold text-gray-400 tracking-wider">BẢN QUYỀN &amp; AI PRO</p>
-                <p className="text-xl font-extrabold text-gray-100">{activeCount} / {totalCount} Pro Key</p>
-                <p className="text-[11px] text-gray-400 flex items-center gap-1">
-                  <span className="text-blue-400">🔑</span> Cấp quyền AI Gateway
+                <p className="text-2xl font-extrabold text-gray-900 leading-tight">{activeCount} / {totalCount} Pro Key</p>
+                <p className="text-[11px] text-gray-500 flex items-center gap-1">
+                  <span className="text-blue-500">🔑</span> Cấp quyền AI Gateway
                 </p>
               </div>
             </div>
           </div>
 
-          {/* MAIN TABLE SECTION */}
-          <div className="bg-[#0f1524] border border-gray-800/90 rounded-2xl p-5 space-y-4 shadow-xl">
-            <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-gray-800/70 pb-4">
+          {/* MAIN TABLE SECTION - KHUNG TRẮNG CARD ROBUST */}
+          <div className="bg-white border border-gray-200 rounded-2xl p-5 space-y-4 shadow-sm">
+            <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-gray-100 pb-4">
               <div>
                 <div className="flex items-center gap-2">
-                  <h3 className="font-bold text-base text-gray-100">Danh sách người dùng</h3>
-                  <span className="px-2 py-0.5 rounded-md bg-amber-500/20 text-amber-300 border border-amber-500/30 text-[11px] font-bold">
+                  <h3 className="font-bold text-base text-gray-900">Danh sách người dùng</h3>
+                  <span className="px-2 py-0.5 rounded-md bg-orange-50 text-orange-600 border border-orange-200 text-[11px] font-bold">
                     {totalCount} thiết bị
                   </span>
                 </div>
-                <p className="text-xs text-gray-400 mt-0.5">
+                <p className="text-xs text-gray-500 mt-0.5">
                   Quản trị viên có thể kiểm soát khóa, gia hạn, cấp lại key và giám sát phần cứng thời gian thực
                 </p>
               </div>
 
-              {/* Quick Search */}
-              <div className="relative w-64">
-                <Search size={14} className="absolute left-3 top-2.5 text-gray-500" />
+              {/* Search Inside Table Card */}
+              <div className="relative w-72">
+                <Search size={14} className="absolute left-3 top-2.5 text-gray-400" />
                 <input
                   type="text"
                   placeholder="Tìm tên hoặc email..."
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
-                  className="w-full bg-[#161f36] border border-gray-700/80 rounded-lg pl-9 pr-3 py-1.5 text-xs text-gray-200 placeholder-gray-500 focus:outline-none focus:border-orange-500/50"
+                  className="w-full bg-gray-50 border border-gray-200 rounded-lg pl-9 pr-3 py-1.5 text-xs text-gray-800 placeholder-gray-400 focus:outline-none focus:border-orange-500 focus:bg-white"
                 />
               </div>
             </div>
 
-            {/* Filter Tabs & Display Rows */}
+            {/* Filter Tabs & Display Rows Dropdown */}
             <div className="flex items-center justify-between text-xs">
-              <div className="flex items-center gap-1.5 bg-[#141b2d] p-1 rounded-xl border border-gray-800">
+              <div className="flex items-center gap-1.5">
                 {[
-                  { id: 'all', label: `Tất cả ${totalCount}` },
-                  { id: 'online', label: `Đang Online ${onlineCount}` },
-                  { id: 'offline', label: `Offline ${offlineCount}` },
-                  { id: 'expired', label: `Hết hạn ${expiredCount}` },
-                  { id: 'locked', label: `Tạm khóa ${lockedCount}` },
-                ].map((tab) => (
-                  <button
-                    key={tab.id}
-                    onClick={() => setActiveTab(tab.id)}
-                    className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition-all ${
-                      activeTab === tab.id
-                        ? 'bg-[#e11d48] text-white shadow'
-                        : 'text-gray-400 hover:text-gray-200'
-                    }`}
-                  >
-                    {tab.label}
-                  </button>
-                ))}
+                  { id: 'all', label: `Tất cả`, count: totalCount, activeClass: 'text-orange-600 bg-orange-50 border-orange-200' },
+                  { id: 'online', label: `Đang Online`, count: onlineCount, activeClass: 'text-emerald-600 bg-emerald-50 border-emerald-200' },
+                  { id: 'offline', label: `Offline`, count: offlineCount, activeClass: 'text-blue-600 bg-blue-50 border-blue-200' },
+                  { id: 'expired', label: `Hết hạn`, count: expiredCount, activeClass: 'text-rose-600 bg-rose-50 border-rose-200' },
+                  { id: 'locked', label: `Tạm khóa`, count: lockedCount, activeClass: 'text-amber-600 bg-amber-50 border-amber-200' },
+                ].map((tab) => {
+                  const isActive = activeTab === tab.id;
+                  return (
+                    <button
+                      key={tab.id}
+                      onClick={() => setActiveTab(tab.id)}
+                      className={`px-3 py-1.5 rounded-lg text-xs font-semibold border transition-all flex items-center gap-1.5 ${
+                        isActive
+                          ? `${tab.activeClass} shadow-sm`
+                          : 'border-transparent text-gray-500 hover:text-gray-800 hover:bg-gray-100'
+                      }`}
+                    >
+                      <span>{tab.label}</span>
+                      <span className={`px-1.5 py-0.2 rounded-full text-[10px] font-bold ${
+                        isActive ? 'bg-white shadow-xs' : 'bg-gray-200 text-gray-600'
+                      }`}>
+                        {tab.count}
+                      </span>
+                    </button>
+                  );
+                })}
               </div>
 
-              <div className="flex items-center gap-2 text-gray-400 text-xs">
+              <div className="flex items-center gap-2 text-gray-500 text-xs">
                 <span>Hiển thị:</span>
-                <select className="bg-[#141b2d] border border-gray-800 rounded px-2 py-1 text-gray-200 focus:outline-none">
+                <select className="bg-gray-50 border border-gray-200 rounded px-2 py-1 text-gray-700 focus:outline-none cursor-pointer">
                   <option value="10">10 dòng</option>
                   <option value="25">25 dòng</option>
                   <option value="50">50 dòng</option>
@@ -382,11 +405,11 @@ export const AdminLicensesPage = () => {
               </div>
             </div>
 
-            {/* TABLE */}
+            {/* TABLE CHUẨN MINTFORGE */}
             <div className="overflow-x-auto">
               <table className="w-full text-left text-xs border-collapse">
                 <thead>
-                  <tr className="border-b border-gray-800 text-[10px] uppercase font-bold text-gray-400 tracking-wider bg-[#0a0e1a]/50">
+                  <tr className="border-b border-gray-200 text-[10px] uppercase font-bold text-gray-400 tracking-wider bg-gray-50/70">
                     <th className="py-3 px-3">KHÁCH HÀNG</th>
                     <th className="py-3 px-3">GÓI &amp; BẢN QUYỀN</th>
                     <th className="py-3 px-3">MÃ MÁY (HWID)</th>
@@ -396,10 +419,10 @@ export const AdminLicensesPage = () => {
                     <th className="py-3 px-3 text-right">THAO TÁC</th>
                   </tr>
                 </thead>
-                <tbody className="divide-y divide-gray-800/60">
+                <tbody className="divide-y divide-gray-100">
                   {filteredLicenses.length === 0 ? (
                     <tr>
-                      <td colSpan="7" className="py-8 text-center text-gray-500">
+                      <td colSpan="7" className="py-8 text-center text-gray-400">
                         Không tìm thấy thiết bị nào phù hợp với điều kiện tìm kiếm.
                       </td>
                     </tr>
@@ -414,18 +437,18 @@ export const AdminLicensesPage = () => {
                         .toUpperCase();
 
                       return (
-                        <tr key={lic.id} className="hover:bg-[#141b2d]/60 transition-colors group">
+                        <tr key={lic.id} className="hover:bg-gray-50/90 transition-colors group">
                           {/* 1. KHÁCH HÀNG */}
                           <td className="py-3.5 px-3">
                             <div className="flex items-center gap-2.5">
-                              <div className="w-8 h-8 rounded-full bg-[#1b253b] border border-gray-700 flex items-center justify-center font-bold text-gray-200 text-xs">
+                              <div className="w-8 h-8 rounded-full bg-[#111827] text-white flex items-center justify-center font-bold text-xs shadow-sm">
                                 {avatarLetters}
                               </div>
                               <div>
-                                <div className="font-bold text-gray-200 flex items-center gap-1.5">
+                                <div className="font-bold text-gray-900 flex items-center gap-1.5">
                                   <span>{lic.customer_name}</span>
                                   {lic.is_locked && (
-                                    <span className="px-1.5 py-0.2 rounded bg-rose-500/20 text-rose-400 text-[9px] font-bold">
+                                    <span className="px-1.5 py-0.2 rounded bg-rose-50 text-rose-600 border border-rose-200 text-[9px] font-bold">
                                       ĐÃ KHÓA
                                     </span>
                                   )}
@@ -439,37 +462,37 @@ export const AdminLicensesPage = () => {
                           <td className="py-3.5 px-3">
                             <div className="flex items-center gap-1.5">
                               {lic.package_type?.includes('VIP') || lic.is_lifetime ? (
-                                <span className="px-2.5 py-1 rounded-full bg-gradient-to-r from-amber-500/20 to-orange-500/20 border border-amber-500/40 text-amber-300 font-bold text-[11px] flex items-center gap-1">
+                                <span className="px-2.5 py-0.5 rounded-full bg-gradient-to-r from-amber-500 to-orange-500 text-white font-bold text-[11px] shadow-xs flex items-center gap-1">
                                   <Sparkles size={11} />
                                   <span>Lifetime VIP</span>
                                 </span>
                               ) : (
-                                <span className="px-2.5 py-1 rounded-full bg-blue-500/20 border border-blue-500/40 text-blue-300 font-bold text-[11px]">
+                                <span className="px-2.5 py-0.5 rounded-full bg-blue-50 border border-blue-200 text-blue-600 font-bold text-[11px]">
                                   AI Pro
                                 </span>
                               )}
-                              <span className="text-[10px] text-gray-400 font-mono">{lic.daily_limit || '100/d'}</span>
+                              <span className="text-[11px] text-gray-400 font-mono">{lic.daily_limit || '100/d'}</span>
                             </div>
                           </td>
 
                           {/* 3. MÃ MÁY HWID */}
                           <td className="py-3.5 px-3">
                             <div className="flex items-center gap-1.5">
-                              <span className="px-1.5 py-0.5 rounded bg-gray-800 text-[10px] font-mono text-gray-300">
+                              <span className="px-1.5 py-0.5 rounded bg-gray-100 text-[10px] font-mono text-gray-600 border border-gray-200">
                                 {lic.machine_id?.startsWith('Win') ? 'Win' : 'PC'}
                               </span>
-                              <span className="font-mono text-[11px] text-gray-300">
+                              <span className="font-mono text-[11px] text-gray-700 font-medium">
                                 {lic.machine_id?.length > 20
                                   ? `${lic.machine_id.substring(0, 10)}...${lic.machine_id.substring(lic.machine_id.length - 6)}`
                                   : lic.machine_id}
                               </span>
                               <button
                                 onClick={() => handleCopy(lic.machine_id, `hwid_${lic.id}`)}
-                                className="text-gray-500 hover:text-gray-300 transition-colors"
+                                className="text-gray-400 hover:text-gray-600 transition-colors cursor-pointer"
                                 title="Sao chép HWID"
                               >
                                 {copiedKey === `hwid_${lic.id}` ? (
-                                  <Check size={12} className="text-emerald-400" />
+                                  <Check size={12} className="text-emerald-500" />
                                 ) : (
                                   <Copy size={12} />
                                 )}
@@ -480,19 +503,26 @@ export const AdminLicensesPage = () => {
                           {/* 4. LICENSE KEY */}
                           <td className="py-3.5 px-3">
                             <div className="flex items-center gap-1.5">
-                              <span className="font-mono text-[11px] text-purple-300 bg-[#171f33] px-2 py-0.5 rounded border border-purple-500/20">
+                              <span className="font-mono text-[11px] text-gray-800 bg-gray-50 px-2 py-0.5 rounded border border-gray-200">
                                 {lic.license_key}
                               </span>
                               <button
                                 onClick={() => handleCopy(lic.full_license_key || lic.license_key, `key_${lic.id}`)}
-                                className="text-gray-500 hover:text-purple-300 transition-colors"
+                                className="text-gray-400 hover:text-orange-500 transition-colors cursor-pointer"
                                 title="Sao chép toàn bộ License Key"
                               >
                                 {copiedKey === `key_${lic.id}` ? (
-                                  <Check size={12} className="text-emerald-400" />
+                                  <Check size={12} className="text-emerald-500" />
                                 ) : (
                                   <Copy size={12} />
                                 )}
+                              </button>
+                              <button
+                                onClick={() => alert(`License Key đầy đủ: ${lic.full_license_key || lic.license_key}`)}
+                                className="text-gray-400 hover:text-blue-500 transition-colors cursor-pointer"
+                                title="Xem đầy đủ"
+                              >
+                                <RotateCw size={11} />
                               </button>
                             </div>
                           </td>
@@ -500,27 +530,24 @@ export const AdminLicensesPage = () => {
                           {/* 5. THỜI HẠN */}
                           <td className="py-3.5 px-3">
                             {lic.is_lifetime ? (
-                              <span className="px-2 py-0.5 rounded-full bg-purple-500/20 border border-purple-500/40 text-purple-300 text-[11px] font-bold inline-flex items-center gap-1">
+                              <span className="px-2 py-0.5 rounded-full bg-purple-50 border border-purple-200 text-purple-600 text-[11px] font-bold inline-flex items-center gap-1">
                                 <Sparkles size={11} />
                                 <span>Vĩnh viễn</span>
                               </span>
                             ) : isExpired ? (
-                              <div className="space-y-0.5">
-                                <div className="text-[11px] text-gray-400 font-mono">
+                              <div className="flex items-center gap-1.5">
+                                <span className="text-[11px] text-gray-500 font-mono">
                                   {lic.expires_at ? new Date(lic.expires_at).toLocaleDateString('vi-VN') : '21/09/2026'}
-                                </div>
-                                <span className="px-1.5 py-0.2 rounded-full bg-rose-500/20 border border-rose-500/40 text-rose-400 text-[10px] font-bold">
+                                </span>
+                                <span className="px-1.5 py-0.2 rounded bg-rose-50 border border-rose-200 text-rose-600 text-[10px] font-bold">
                                   Đã hết hạn
                                 </span>
                               </div>
                             ) : (
-                              <div className="space-y-0.5">
-                                <div className="text-[11px] text-emerald-400 font-semibold font-mono">
+                              <div className="flex items-center gap-1.5">
+                                <span className="text-[11px] text-emerald-600 font-bold font-mono">
                                   Còn {lic.days_remaining} ngày
-                                </div>
-                                <div className="text-[10px] text-gray-500 font-mono">
-                                  {lic.expires_at ? new Date(lic.expires_at).toLocaleDateString('vi-VN') : 'Đang hoạt động'}
-                                </div>
+                                </span>
                               </div>
                             )}
                           </td>
@@ -528,12 +555,12 @@ export const AdminLicensesPage = () => {
                           {/* 6. PHIÊN HOẠT ĐỘNG */}
                           <td className="py-3.5 px-3">
                             {lic.is_online ? (
-                              <span className="inline-flex items-center gap-1.5 text-emerald-400 font-semibold">
-                                <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-ping" />
+                              <span className="inline-flex items-center gap-1.5 text-emerald-600 font-semibold">
+                                <span className="w-2 h-2 rounded-full bg-emerald-500 animate-ping" />
                                 <span>Online</span>
                               </span>
                             ) : isExpired ? (
-                              <span className="inline-flex items-center gap-1 text-rose-400 text-[11px]">
+                              <span className="inline-flex items-center gap-1 text-rose-600 text-[11px] font-medium">
                                 <AlertCircle size={12} />
                                 <span>Đã hết hạn</span>
                               </span>
@@ -554,7 +581,7 @@ export const AdminLicensesPage = () => {
                                   setSelectedLicense(lic);
                                   setRenewModalOpen(true);
                                 }}
-                                className="px-2.5 py-1 rounded-lg bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-[11px] transition-all flex items-center gap-1 shadow-sm"
+                                className="px-3 py-1.5 rounded-lg bg-[#059669] hover:bg-[#047857] text-white font-bold text-[11px] transition-all flex items-center gap-1 shadow-sm active:scale-95 cursor-pointer"
                                 title="Gia hạn thêm thời gian sử dụng"
                               >
                                 <RefreshCw size={11} />
@@ -564,14 +591,23 @@ export const AdminLicensesPage = () => {
                               {/* Nút Khóa / Mở khóa */}
                               <button
                                 onClick={() => toggleLockLicense(lic.id)}
-                                className={`p-1.5 rounded-lg border transition-all ${
+                                className={`p-1.5 rounded-lg border transition-all cursor-pointer ${
                                   lic.is_locked
-                                    ? 'bg-rose-500/20 border-rose-500/50 text-rose-400 hover:bg-rose-500/30'
-                                    : 'bg-gray-800 border-gray-700 text-gray-300 hover:bg-gray-700'
+                                    ? 'bg-rose-50 border-rose-300 text-rose-600 hover:bg-rose-100'
+                                    : 'bg-blue-50 border-blue-200 text-blue-600 hover:bg-blue-100'
                                 }`}
-                                title={lic.is_locked ? 'Mở khóa thiết bị này' : 'Khóa thiết bị'}
+                                title={lic.is_locked ? 'Mở khóa thiết bị' : 'Khóa thiết bị'}
                               >
                                 <Shield size={13} />
+                              </button>
+
+                              {/* Nút Lock Device */}
+                              <button
+                                onClick={() => toggleLockLicense(lic.id)}
+                                className="p-1.5 rounded-lg bg-amber-50 hover:bg-amber-100 border border-amber-200 text-amber-600 transition-colors cursor-pointer"
+                                title="Tạm dừng phiên máy"
+                              >
+                                <Lock size={13} />
                               </button>
 
                               {/* Nút Chỉnh sửa */}
@@ -587,7 +623,7 @@ export const AdminLicensesPage = () => {
                                   });
                                   setEditModalOpen(true);
                                 }}
-                                className="p-1.5 rounded-lg bg-gray-800 hover:bg-gray-700 border border-gray-700 text-gray-300 transition-colors"
+                                className="p-1.5 rounded-lg bg-gray-50 hover:bg-gray-100 border border-gray-200 text-gray-600 transition-colors cursor-pointer"
                                 title="Sửa thông tin"
                               >
                                 <Edit2 size={13} />
@@ -596,7 +632,7 @@ export const AdminLicensesPage = () => {
                               {/* Nút Xóa */}
                               <button
                                 onClick={() => handleDelete(lic.id, lic.customer_name)}
-                                className="p-1.5 rounded-lg bg-gray-800 hover:bg-rose-950 border border-gray-700 hover:border-rose-700 text-gray-400 hover:text-rose-400 transition-colors"
+                                className="p-1.5 rounded-lg bg-rose-50 hover:bg-rose-100 border border-rose-200 text-rose-600 transition-colors cursor-pointer"
                                 title="Xóa và thu hồi key"
                               >
                                 <Trash2 size={13} />
@@ -612,16 +648,18 @@ export const AdminLicensesPage = () => {
             </div>
 
             {/* Pagination Footer */}
-            <div className="flex items-center justify-between text-xs text-gray-500 pt-2 border-t border-gray-800/60">
+            <div className="flex items-center justify-between text-xs text-gray-500 pt-3 border-t border-gray-100">
               <div>
                 Hiển thị 1 – {filteredLicenses.length} trong tổng số {totalCount} người dùng
               </div>
-              <div className="flex items-center gap-1">
-                <button className="px-2.5 py-1 rounded bg-[#141b2d] border border-gray-800 text-gray-400 cursor-not-allowed">
+              <div className="flex items-center gap-1.5">
+                <button className="w-7 h-7 rounded-lg bg-white border border-gray-200 flex items-center justify-center text-gray-400 hover:bg-gray-50 cursor-not-allowed">
                   &lt;
                 </button>
-                <button className="px-2.5 py-1 rounded bg-[#e11d48] text-white font-bold">1</button>
-                <button className="px-2.5 py-1 rounded bg-[#141b2d] border border-gray-800 text-gray-400 cursor-not-allowed">
+                <button className="w-7 h-7 rounded-lg bg-[#f97316] text-white font-bold flex items-center justify-center shadow-xs">
+                  1
+                </button>
+                <button className="w-7 h-7 rounded-lg bg-white border border-gray-200 flex items-center justify-center text-gray-400 hover:bg-gray-50 cursor-not-allowed">
                   &gt;
                 </button>
               </div>
@@ -647,7 +685,7 @@ export const AdminLicensesPage = () => {
             <Button
               variant="primary"
               size="sm"
-              className="bg-gradient-to-r from-orange-500 to-amber-600 hover:from-orange-600 hover:to-amber-700 border-none"
+              className="bg-gradient-to-r from-orange-500 to-amber-600 hover:from-orange-600 hover:to-amber-700 text-white border-none font-bold"
               onClick={handleCreateSubmit}
             >
               Tạo &amp; Cấp Key Ngay
@@ -657,35 +695,35 @@ export const AdminLicensesPage = () => {
       >
         <form onSubmit={handleCreateSubmit} className="space-y-3.5 text-xs text-left">
           <div>
-            <label className="block text-gray-300 font-semibold mb-1">Tên khách hàng / Tên máy:</label>
+            <label className="block text-gray-700 font-semibold mb-1">Tên khách hàng / Tên máy:</label>
             <input
               type="text"
               placeholder="VD: Máy nhà, hoangdinhchien..."
               value={createForm.customer_name}
               onChange={(e) => setCreateForm({ ...createForm, customer_name: e.target.value })}
-              className="w-full bg-[#141b2d] border border-gray-700 rounded-lg p-2 text-gray-100 focus:outline-none focus:border-orange-500"
+              className="w-full bg-white border border-gray-300 rounded-lg p-2 text-gray-900 focus:outline-none focus:border-orange-500 shadow-xs"
             />
           </div>
 
           <div>
-            <label className="block text-gray-300 font-semibold mb-1">Email nhận bản quyền (*):</label>
+            <label className="block text-gray-700 font-semibold mb-1">Email nhận bản quyền (*):</label>
             <input
               type="email"
               required
               placeholder="khachhang@gmail.com"
               value={createForm.user_email}
               onChange={(e) => setCreateForm({ ...createForm, user_email: e.target.value })}
-              className="w-full bg-[#141b2d] border border-gray-700 rounded-lg p-2 text-gray-100 focus:outline-none focus:border-orange-500"
+              className="w-full bg-white border border-gray-300 rounded-lg p-2 text-gray-900 focus:outline-none focus:border-orange-500 shadow-xs"
             />
           </div>
 
           <div className="grid grid-cols-2 gap-3">
             <div>
-              <label className="block text-gray-300 font-semibold mb-1">Gói bản quyền:</label>
+              <label className="block text-gray-700 font-semibold mb-1">Gói bản quyền:</label>
               <select
                 value={createForm.package_type}
                 onChange={(e) => setCreateForm({ ...createForm, package_type: e.target.value })}
-                className="w-full bg-[#141b2d] border border-gray-700 rounded-lg p-2 text-gray-100 focus:outline-none"
+                className="w-full bg-white border border-gray-300 rounded-lg p-2 text-gray-900 focus:outline-none"
               >
                 <option value="AI Pro">AI Pro (Tiêu chuẩn)</option>
                 <option value="Lifetime VIP">Lifetime VIP (Không giới hạn)</option>
@@ -693,40 +731,40 @@ export const AdminLicensesPage = () => {
             </div>
 
             <div>
-              <label className="block text-gray-300 font-semibold mb-1">Giới hạn ngày:</label>
+              <label className="block text-gray-700 font-semibold mb-1">Giới hạn ngày:</label>
               <input
                 type="text"
                 value={createForm.daily_limit}
                 onChange={(e) => setCreateForm({ ...createForm, daily_limit: e.target.value })}
-                className="w-full bg-[#141b2d] border border-gray-700 rounded-lg p-2 text-gray-100"
+                className="w-full bg-white border border-gray-300 rounded-lg p-2 text-gray-900"
               />
             </div>
           </div>
 
-          <div className="p-3 bg-[#111625] rounded-xl border border-gray-800 space-y-2">
+          <div className="p-3 bg-orange-50/60 rounded-xl border border-orange-200/80 space-y-2">
             <label className="flex items-center gap-2 cursor-pointer">
               <input
                 type="checkbox"
                 checked={createForm.is_lifetime}
                 onChange={(e) => setCreateForm({ ...createForm, is_lifetime: e.target.checked })}
-                className="rounded text-orange-500"
+                className="rounded text-orange-600 focus:ring-orange-500"
               />
-              <span className="font-bold text-amber-400">Cấp Bản Quyền Vĩnh Viễn (Lifetime VIP)</span>
+              <span className="font-bold text-orange-800">Cấp Bản Quyền Vĩnh Viễn (Lifetime VIP)</span>
             </label>
 
             {!createForm.is_lifetime && (
               <div>
-                <label className="block text-gray-400 text-[11px] mb-1">Thời hạn sử dụng (ngày):</label>
+                <label className="block text-gray-600 text-[11px] mb-1">Thời hạn sử dụng (ngày):</label>
                 <div className="grid grid-cols-3 gap-2">
                   {[30, 90, 365].map((d) => (
                     <button
                       key={d}
                       type="button"
                       onClick={() => setCreateForm({ ...createForm, days: d })}
-                      className={`py-1.5 rounded border text-xs font-semibold ${
+                      className={`py-1.5 rounded-lg border text-xs font-semibold ${
                         createForm.days === d
-                          ? 'bg-orange-500/20 border-orange-500 text-orange-300'
-                          : 'bg-[#162035] border-gray-700 text-gray-300'
+                          ? 'bg-orange-500 text-white border-orange-500 shadow-xs'
+                          : 'bg-white border-gray-300 text-gray-700'
                       }`}
                     >
                       {d} ngày {d === 365 ? '(1 năm)' : ''}
@@ -738,13 +776,13 @@ export const AdminLicensesPage = () => {
           </div>
 
           <div>
-            <label className="block text-gray-300 font-semibold mb-1">Khóa cứng máy trạm (HWID - Tùy chọn):</label>
+            <label className="block text-gray-700 font-semibold mb-1">Khóa cứng máy trạm (HWID - Tùy chọn):</label>
             <input
               type="text"
               placeholder="Để trống nếu để máy khách tự liên kết khi nhập key lần đầu"
               value={createForm.machine_id}
               onChange={(e) => setCreateForm({ ...createForm, machine_id: e.target.value })}
-              className="w-full bg-[#141b2d] border border-gray-700 rounded-lg p-2 text-gray-100 font-mono text-xs focus:outline-none"
+              className="w-full bg-white border border-gray-300 rounded-lg p-2 text-gray-900 font-mono text-xs focus:outline-none"
             />
           </div>
         </form>
@@ -771,25 +809,25 @@ export const AdminLicensesPage = () => {
         }
       >
         <div className="space-y-4 text-xs">
-          <div className="p-3 bg-[#111625] rounded-xl border border-gray-800 space-y-1.5">
+          <div className="p-3 bg-gray-50 rounded-xl border border-gray-200 space-y-1.5">
             <div className="flex justify-between">
-              <span className="text-gray-400">Khách hàng:</span>
-              <span className="font-bold text-gray-200">{selectedLicense?.customer_name}</span>
+              <span className="text-gray-500">Khách hàng:</span>
+              <span className="font-bold text-gray-800">{selectedLicense?.customer_name}</span>
             </div>
             <div className="flex justify-between">
-              <span className="text-gray-400">Mã Key:</span>
-              <span className="font-mono text-purple-300">{selectedLicense?.full_license_key || selectedLicense?.license_key}</span>
+              <span className="text-gray-500">Mã Key:</span>
+              <span className="font-mono text-orange-600 font-bold">{selectedLicense?.full_license_key || selectedLicense?.license_key}</span>
             </div>
             <div className="flex justify-between">
-              <span className="text-gray-400">Thời hạn hiện tại:</span>
-              <span className="font-semibold text-rose-400">
+              <span className="text-gray-500">Thời hạn hiện tại:</span>
+              <span className="font-semibold text-rose-600">
                 {selectedLicense?.is_lifetime ? 'Vĩnh viễn' : `Còn ${selectedLicense?.days_remaining || 0} ngày`}
               </span>
             </div>
           </div>
 
           <div>
-            <label className="block text-gray-300 font-semibold mb-2">Chọn gói thời gian gia hạn thêm:</label>
+            <label className="block text-gray-700 font-semibold mb-2">Chọn gói thời gian gia hạn thêm:</label>
             <div className="grid grid-cols-3 gap-2 mb-3">
               {[
                 { days: 30, label: '+30 Ngày' },
@@ -805,8 +843,8 @@ export const AdminLicensesPage = () => {
                   }}
                   className={`p-2.5 rounded-xl border text-xs font-bold transition-all ${
                     renewDays === item.days && !renewLifetime
-                      ? 'bg-emerald-500/20 border-emerald-500 text-emerald-300 shadow'
-                      : 'bg-[#141b2d] border-gray-800 text-gray-400 hover:text-gray-200'
+                      ? 'bg-emerald-50 border-emerald-500 text-emerald-700 shadow-xs'
+                      : 'bg-white border-gray-200 text-gray-600 hover:bg-gray-50'
                   }`}
                 >
                   {item.label}
@@ -819,11 +857,11 @@ export const AdminLicensesPage = () => {
               onClick={() => setRenewLifetime(!renewLifetime)}
               className={`w-full p-2.5 rounded-xl border text-xs font-bold flex items-center justify-center gap-2 transition-all ${
                 renewLifetime
-                  ? 'bg-purple-500/25 border-purple-500 text-purple-300 shadow-md shadow-purple-900/30'
-                  : 'bg-[#141b2d] border-gray-800 text-gray-400 hover:text-gray-200'
+                  ? 'bg-purple-50 border-purple-500 text-purple-700 shadow-xs'
+                  : 'bg-white border-gray-200 text-gray-600 hover:bg-gray-50'
               }`}
             >
-              <Sparkles size={14} className="text-amber-400" />
+              <Sparkles size={14} className="text-amber-500" />
               <span>Nâng cấp thành Bản quyền VĨNH VIỄN (Lifetime VIP)</span>
             </button>
           </div>
@@ -852,32 +890,32 @@ export const AdminLicensesPage = () => {
       >
         <div className="space-y-3 text-xs">
           <div>
-            <label className="block text-gray-300 font-semibold mb-1">Tên khách hàng:</label>
+            <label className="block text-gray-700 font-semibold mb-1">Tên khách hàng:</label>
             <input
               type="text"
               value={editForm.customer_name}
               onChange={(e) => setEditForm({ ...editForm, customer_name: e.target.value })}
-              className="w-full bg-[#141b2d] border border-gray-700 rounded-lg p-2 text-gray-100"
+              className="w-full bg-white border border-gray-300 rounded-lg p-2 text-gray-900"
             />
           </div>
 
           <div>
-            <label className="block text-gray-300 font-semibold mb-1">Email:</label>
+            <label className="block text-gray-700 font-semibold mb-1">Email:</label>
             <input
               type="email"
               value={editForm.user_email}
               onChange={(e) => setEditForm({ ...editForm, user_email: e.target.value })}
-              className="w-full bg-[#141b2d] border border-gray-700 rounded-lg p-2 text-gray-100"
+              className="w-full bg-white border border-gray-300 rounded-lg p-2 text-gray-900"
             />
           </div>
 
           <div>
-            <label className="block text-gray-300 font-semibold mb-1">Mã khóa phần cứng (HWID):</label>
+            <label className="block text-gray-700 font-semibold mb-1">Mã khóa phần cứng (HWID):</label>
             <input
               type="text"
               value={editForm.machine_id}
               onChange={(e) => setEditForm({ ...editForm, machine_id: e.target.value })}
-              className="w-full bg-[#141b2d] border border-gray-700 rounded-lg p-2 text-gray-100 font-mono"
+              className="w-full bg-white border border-gray-300 rounded-lg p-2 text-gray-900 font-mono"
             />
           </div>
         </div>
