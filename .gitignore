@@ -4,7 +4,9 @@ frontend/node_modules/
 
 # Production builds
 dist/
+dist_*/
 dist_client/
+dist_debug/
 dist_electron/
 electron/node_modules/
 electron/dist/
