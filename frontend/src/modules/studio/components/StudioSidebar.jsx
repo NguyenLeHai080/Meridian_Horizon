@@ -17,8 +17,12 @@ import {
 } from 'lucide-react';
 import useStudioStore from '../store/studioStore';
 
-export const StudioSidebar = ({ onOpenCreditModal, onOpenLicenseModal }) => {
+export const StudioSidebar = ({ onOpenCreditModal, onOpenLicenseModal, licenseInfo }) => {
   const credits = useStudioStore((state) => state.credits);
+
+  const licenseLabel = licenseInfo?.is_lifetime
+    ? '🛡️ Bản quyền (Vĩnh viễn)'
+    : `🛡️ Bản quyền (còn ${licenseInfo?.days_remaining ?? 43} ngày)`;
 
   return (
     <aside className="w-56 flex-shrink-0 bg-[#0c101c] border-r border-gray-800 flex flex-col justify-between select-none h-full text-gray-300 font-sans z-10">
@@ -85,10 +89,10 @@ export const StudioSidebar = ({ onOpenCreditModal, onOpenLicenseModal }) => {
             {/* Nút Bản Quyền Kích Hoạt (Nhấp mở Modal) */}
             <button
               onClick={onOpenLicenseModal}
-              className="w-full flex items-center justify-between px-2.5 py-1.5 rounded-lg text-xs font-bold text-emerald-400 bg-emerald-950/40 border border-emerald-500/40 hover:bg-emerald-900/50 transition-all text-left shadow-sm"
+              className="w-full flex items-center justify-between px-2.5 py-1.5 rounded-lg text-xs font-bold text-emerald-400 bg-emerald-950/40 border border-emerald-500/40 hover:bg-emerald-900/50 transition-all text-left shadow-sm cursor-pointer"
               title="Nhấp để nhập Key mới hoặc xem hạn dùng"
             >
-              <span>🛡️ Bản quyền (còn 43 ngày)</span>
+              <span>{licenseLabel}</span>
             </button>
 
             <button

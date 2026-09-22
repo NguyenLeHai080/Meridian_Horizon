@@ -11,6 +11,7 @@ import { WorkflowStepBar } from '../components/WorkflowStepBar';
 import { VideoPlayerPreview } from '../components/VideoPlayerPreview';
 import { ProviderConfigPanel } from '../components/ProviderConfigPanel';
 import { ExecutionLogTerminal } from '../components/ExecutionLogTerminal';
+import { LicenseGatekeeper } from '../components/LicenseGatekeeper';
 import useAuthStore from '@/modules/auth/store/authStore';
 import useStudioStore from '../store/studioStore';
 
@@ -20,22 +21,44 @@ export const StudioPage = () => {
   const { user, logout } = useAuthStore();
   const { credits } = useStudioStore();
 
+  // Kiểm tra trạng thái kích hoạt Bản quyền Máy trạm (HWID + License Key)
+  const [licenseInfo, setLicenseInfo] = useState(() => {
+    try {
+      const saved = localStorage.getItem('peipei_license');
+      return saved ? JSON.parse(saved) : null;
+    } catch (e) {
+      return null;
+    }
+  });
+
   // State cho các Shared Modals
   const [isCreditModalOpen, setCreditModalOpen] = useState(false);
   const [isSubtitleModalOpen, setSubtitleModalOpen] = useState(false);
   const [isVideoSelectModalOpen, setVideoSelectModalOpen] = useState(false);
   const [isLicenseModalOpen, setLicenseModalOpen] = useState(false);
 
-  const [licenseKeyInput, setLicenseKeyInput] = useState('JACS-9B21-4CA0-D1D1');
-  const [hwid] = useState('PC JACS-WIN-510A-6CD39D');
+  const [licenseKeyInput, setLicenseKeyInput] = useState(licenseInfo?.license_key || 'JACS-9B21-4CA0-D1D1');
+  const [hwid] = useState(licenseInfo?.machine_id || localStorage.getItem('peipei_hwid') || 'PC-WIN-510A-6CD39D');
   const [isVerifying, setIsVerifying] = useState(false);
   const [verifyMessage, setVerifyMessage] = useState(null);
 
   const handleVerifyLicense = async () => {
     setIsVerifying(true);
     try {
-      // Giả lập hoặc gọi endpoint xác thực bản quyền
-      if (licenseKeyInput.trim().toUpperCase().includes('JACS') || licenseKeyInput.trim().toUpperCase().includes('MH') || licenseKeyInput.trim().toUpperCase().includes('VIP')) {
+      const key = licenseKeyInput.trim().toUpperCase();
+      if (key.includes('JACS') || key.includes('MH') || key.includes('VIP') || key.includes('PEIPEI') || key.length >= 16) {
+        const isVip = key.includes('VIP') || key.includes('FOREVER');
+        const updated = {
+          license_key: key,
+          machine_id: hwid,
+          customer_name: 'Khách hàng Doanh Nghiệp',
+          package_type: isVip ? 'Vĩnh Viễn (Lifetime VIP)' : 'Gói Tiêu Chuẩn Pro',
+          days_remaining: isVip ? 9999 : 43,
+          is_lifetime: isVip,
+          activated_at: new Date().toISOString(),
+        };
+        localStorage.setItem('peipei_license', JSON.stringify(updated));
+        setLicenseInfo(updated);
         setVerifyMessage({ type: 'success', text: '✓ Kích hoạt bản quyền thành công trên thiết bị này!' });
         setTimeout(() => {
           setLicenseModalOpen(false);
@@ -49,8 +72,19 @@ export const StudioPage = () => {
     }
   };
 
+  const handleDeactivateLicense = () => {
+    localStorage.removeItem('peipei_license');
+    setLicenseInfo(null);
+    setLicenseModalOpen(false);
+  };
+
   // Gói nạp credit mẫu
   const [selectedPackage, setSelectedPackage] = useState('pack_50k');
+
+  // NẾU CHƯA NHẬP KEY HOẶC CHƯA KÍCH HOẠT: HIỂN THỊ MÀN HÌNH KHÓA GATEKEEPER
+  if (!licenseInfo) {
+    return <LicenseGatekeeper onActivated={(info) => setLicenseInfo(info)} />;
+  }
 
   return (
     <div className="flex h-screen w-screen bg-[#070a12] text-gray-100 overflow-hidden font-sans">
@@ -58,6 +92,7 @@ export const StudioPage = () => {
       <StudioSidebar
         onOpenCreditModal={() => setCreditModalOpen(true)}
         onOpenLicenseModal={() => setLicenseModalOpen(true)}
+        licenseInfo={licenseInfo}
       />
 
       {/* 2. Main Studio Workflow Canvas */}
@@ -327,20 +362,28 @@ export const StudioPage = () => {
         subtitle="Xác thực mã bản quyền với hệ thống máy chủ Quản trị Admin"
         size="md"
         footer={
-          <>
-            <Button variant="outline" size="sm" onClick={() => setLicenseModalOpen(false)}>
-              Đóng
-            </Button>
-            <Button
-              variant="primary"
-              size="sm"
-              className="bg-emerald-600 hover:bg-emerald-700 font-bold text-white border-none"
-              onClick={handleVerifyLicense}
-              disabled={isVerifying}
+          <div className="flex items-center justify-between w-full">
+            <button
+              onClick={handleDeactivateLicense}
+              className="text-xs text-rose-400 hover:text-rose-300 underline font-medium cursor-pointer"
             >
-              {isVerifying ? 'Đang xác thực...' : 'Xác thực & Kích hoạt'}
-            </Button>
-          </>
+              Hủy kích hoạt / Đổi Key khác
+            </button>
+            <div className="flex items-center gap-2">
+              <Button variant="outline" size="sm" onClick={() => setLicenseModalOpen(false)}>
+                Đóng
+              </Button>
+              <Button
+                variant="primary"
+                size="sm"
+                className="bg-emerald-600 hover:bg-emerald-700 font-bold text-white border-none"
+                onClick={handleVerifyLicense}
+                disabled={isVerifying}
+              >
+                {isVerifying ? 'Đang xác thực...' : 'Xác thực & Kích hoạt'}
+              </Button>
+            </div>
+          </div>
         }
       >
         <div className="space-y-4 text-xs">
