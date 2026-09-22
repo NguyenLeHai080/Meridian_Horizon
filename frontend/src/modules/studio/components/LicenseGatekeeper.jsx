@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { ShieldCheck, Key, Copy, Check, Headphones, AlertCircle, RefreshCw, Laptop, X, Minus } from 'lucide-react';
+import { ShieldCheck, Key, Copy, Check, Headphones, AlertCircle, RefreshCw, Cpu, Lock, Zap } from 'lucide-react';
 
 export const LicenseGatekeeper = ({ onActivated, onClose }) => {
   const [hwid, setHwid] = useState('PC-WIN-510A-6CD39D');
@@ -117,7 +117,7 @@ export const LicenseGatekeeper = ({ onActivated, onClose }) => {
 
       setStatusMessage({
         type: 'success',
-        text: `✓ ${resData.message || 'Kích hoạt thành công!'} Đang mở khóa PeiPei Dub Studio...`,
+        text: `✓ ${resData.message || 'Kích hoạt thành công!'} Đang khởi chạy PeiPei Dub Studio...`,
       });
 
       setTimeout(() => {
@@ -134,79 +134,72 @@ export const LicenseGatekeeper = ({ onActivated, onClose }) => {
   };
 
   return (
-    <div className="w-full h-full min-h-screen bg-[#0c101c] text-gray-100 flex flex-col justify-between font-sans select-none overflow-y-auto">
-      {/* 1. Header Banner với nút Đóng / Mở (Thu nhỏ & Tắt) */}
-      <div className="p-4 bg-gradient-to-r from-[#581c87] via-[#4c1d95] to-[#1e1b4b] border-b border-purple-500/30 flex items-center justify-between text-white flex-shrink-0">
-        <div className="flex items-center gap-3">
-          <div className="w-11 h-11 rounded-xl bg-[#4c1d95] border border-purple-300/40 flex items-center justify-center shadow-lg relative flex-shrink-0">
-            <span className="text-xl">🐼</span>
-            <div className="absolute -top-1 -right-1 w-4 h-4 rounded-full bg-cyan-400 text-gray-900 flex items-center justify-center">
-              <Headphones size={9} />
+    <div className="relative overflow-hidden w-full h-full min-h-screen bg-[#0b0f17] text-gray-100 flex flex-col justify-between font-sans select-none">
+      {/* Background Cyber Ambient Glows */}
+      <div className="absolute -top-20 -right-20 w-64 h-64 bg-emerald-500/10 rounded-full blur-3xl pointer-events-none" />
+      <div className="absolute -bottom-20 -left-20 w-64 h-64 bg-cyan-500/10 rounded-full blur-3xl pointer-events-none" />
+      <div 
+        className="absolute inset-0 opacity-20 pointer-events-none"
+        style={{
+          backgroundImage: 'radial-gradient(rgba(16, 185, 129, 0.15) 1px, transparent 1px)',
+          backgroundSize: '20px 20px',
+        }}
+      />
+
+      {/* 1. Header: Cyber Workstation Identity (Đồng bộ chuẩn PeiPei Dub Studio) */}
+      <div className="relative z-10 px-6 pt-6 pb-4 border-b border-emerald-500/20 bg-gradient-to-b from-[#0f172a]/90 to-[#0b0f17]/90 flex-shrink-0">
+        <div className="flex items-center gap-3.5">
+          {/* Glowing Avatar */}
+          <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-emerald-500/20 via-[#0d1627] to-cyan-500/20 border border-emerald-400/40 flex items-center justify-center shadow-[0_0_20px_rgba(16,185,129,0.25)] relative flex-shrink-0">
+            <span className="text-2xl">🐼</span>
+            <div className="absolute -top-1 -right-1 w-4 h-4 rounded-full bg-emerald-400 text-gray-950 flex items-center justify-center shadow-[0_0_8px_#34d399]">
+              <Headphones size={9} strokeWidth={3} />
             </div>
           </div>
-          <div>
+
+          {/* Title & Gateway Meta */}
+          <div className="flex-1 min-w-0">
             <div className="flex items-center gap-2">
-              <h1 className="text-base font-black tracking-wide text-white">PeiPei Dub Studio</h1>
-              <span className="px-2 py-0.5 rounded-full bg-cyan-400/20 text-cyan-300 text-[10px] font-mono font-bold border border-cyan-400/30">
+              <span className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full bg-emerald-500/10 text-emerald-400 text-[10px] font-mono font-bold border border-emerald-500/30">
+                <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
+                SECURITY GATEWAY
+              </span>
+              <span className="px-1.5 py-0.5 rounded bg-cyan-500/10 text-cyan-300 text-[10px] font-mono font-bold border border-cyan-500/20">
                 v1.5.73
               </span>
             </div>
-            <p className="text-[11px] text-purple-200 mt-0.5">
-              Khóa Bản Quyền Thiết Bị — Kích hoạt trước khi vào ứng dụng
+            <h1 className="text-lg font-black tracking-wide text-transparent bg-clip-text bg-gradient-to-r from-emerald-300 via-teal-200 to-cyan-400 mt-0.5">
+              PeiPei Dub Studio
+            </h1>
+            <p className="text-[11px] text-gray-400 truncate mt-0.5">
+              Khóa Bản Quyền Thiết Bị • AI Video Dubbing & OCR Workstation
             </p>
           </div>
         </div>
-
-        {/* Nút Thu nhỏ (_) và Đóng (X) chuẩn trên header */}
-        <div className="flex items-center gap-1.5">
-          <button
-            onClick={() => {
-              if (window.pywebview && window.pywebview.api) {
-                window.pywebview.api.minimize();
-              }
-            }}
-            className="p-1.5 rounded-lg bg-black/40 hover:bg-white/10 text-gray-300 hover:text-white transition-colors cursor-pointer border border-white/10"
-            title="Thu nhỏ cửa sổ"
-          >
-            <Minus size={15} />
-          </button>
-          <button
-            onClick={() => {
-              if (window.pywebview && window.pywebview.api) {
-                window.pywebview.api.close();
-              } else if (onClose) {
-                onClose();
-              } else {
-                window.close();
-              }
-            }}
-            className="p-1.5 rounded-lg bg-black/40 hover:bg-rose-600 text-gray-300 hover:text-white transition-colors cursor-pointer border border-white/10"
-            title="Đóng ứng dụng"
-          >
-            <X size={15} />
-          </button>
-        </div>
       </div>
 
-      {/* 2. Body Content (Chiếm trọn cửa sổ, không có khoảng đen thừa) */}
-      <div className="p-5 flex-1 flex flex-col justify-center space-y-4">
-        {/* Machine HWID Box */}
-        <div className="p-3 bg-[#080d1a] border border-gray-800 rounded-xl space-y-1.5">
+      {/* 2. Main Body Content */}
+      <div className="relative z-10 px-6 py-4 flex-1 flex flex-col justify-center space-y-4">
+        {/* Machine Hardware ID Card */}
+        <div className="p-3.5 bg-[#070b14]/90 border border-emerald-500/20 rounded-xl space-y-2 shadow-inner">
           <div className="flex items-center justify-between text-xs">
-            <span className="text-gray-400 font-semibold flex items-center gap-1.5">
-              <Laptop size={14} className="text-cyan-400" />
-              <span>Mã phần cứng máy trạm của bạn (HWID):</span>
+            <span className="text-gray-300 font-bold flex items-center gap-1.5 tracking-wide text-[11px] uppercase">
+              <Cpu size={14} className="text-emerald-400" />
+              <span>Mã phần cứng máy trạm (HWID):</span>
             </span>
-            <span className="text-[10px] text-gray-500 font-mono">Định danh máy</span>
+            <span className="text-[10px] text-emerald-400 font-mono bg-emerald-500/10 px-2 py-0.5 rounded border border-emerald-500/30">
+              ● ĐÃ KHÓA THIẾT BỊ
+            </span>
           </div>
-          <div className="flex items-center justify-between bg-[#111728] border border-gray-700/80 rounded-lg px-3 py-2">
-            <span className="font-mono text-sm font-bold text-cyan-400 tracking-wider">
+
+          <div className="flex items-center justify-between bg-[#0b1220] border border-emerald-500/30 rounded-lg px-3 py-2 shadow-[0_0_15px_rgba(16,185,129,0.04)]">
+            <span className="font-mono text-sm font-black text-cyan-300 tracking-widest selection:bg-emerald-500 selection:text-black">
               {hwid}
             </span>
             <button
               onClick={handleCopyHwid}
-              className="flex items-center gap-1 px-2.5 py-1 rounded bg-[#1e273e] hover:bg-[#283554] text-gray-200 text-xs font-semibold transition-colors cursor-pointer"
-              title="Sao chép mã máy để gửi cho Quản trị viên"
+              className="flex items-center gap-1.5 px-3 py-1 rounded-md bg-[#101b30] hover:bg-emerald-500/20 text-gray-200 hover:text-emerald-300 border border-gray-700 hover:border-emerald-500/50 text-xs font-semibold transition-all cursor-pointer shadow-sm"
+              title="Sao chép mã phần cứng để gửi Quản trị viên"
             >
               {copied ? (
                 <>
@@ -222,13 +215,13 @@ export const LicenseGatekeeper = ({ onActivated, onClose }) => {
             </button>
           </div>
           <p className="text-[10.5px] text-gray-400 leading-normal">
-            Mã HWID được dùng để khóa bản quyền theo đúng thiết bị máy tính của bạn, ngăn chặn kích hoạt trùng lặp.
+            Mã định danh được trích xuất từ phần cứng của máy, dùng để gán license chống kích hoạt trùng lặp.
           </p>
         </div>
 
         {/* License Key Input Box */}
         <div className="space-y-1.5">
-          <label className="block text-xs font-bold text-gray-200 flex items-center gap-1.5">
+          <label className="block text-xs font-bold text-gray-200 flex items-center gap-1.5 uppercase tracking-wide text-[11px]">
             <Key size={14} className="text-amber-400" />
             <span>Nhập Mã Bản Quyền (License Key):</span>
           </label>
@@ -238,7 +231,7 @@ export const LicenseGatekeeper = ({ onActivated, onClose }) => {
               value={licenseKey}
               onChange={(e) => setLicenseKey(e.target.value)}
               placeholder="VD: JACS-9B21-4CA0-D1D1 hoặc MH-XXXX-XXXX-XXXX"
-              className="w-full bg-[#111728] border border-gray-700 focus:border-purple-500 rounded-xl px-3.5 py-2.5 text-sm font-mono font-bold text-amber-300 placeholder-gray-600 focus:outline-none transition-all shadow-inner"
+              className="w-full bg-[#070b14] border border-gray-700/90 focus:border-emerald-400 focus:ring-2 focus:ring-emerald-500/20 rounded-xl px-4 py-2.5 text-sm font-mono font-bold text-emerald-300 placeholder-gray-600 focus:outline-none transition-all shadow-inner tracking-wider"
               onKeyDown={(e) => {
                 if (e.key === 'Enter') handleVerify();
               }}
@@ -246,10 +239,10 @@ export const LicenseGatekeeper = ({ onActivated, onClose }) => {
           </div>
         </div>
 
-        {/* Quick Sample Keys Picker */}
-        <div className="p-3 bg-[#080d1a] border border-gray-800/80 rounded-xl space-y-2">
-          <span className="text-[11px] font-bold text-gray-400 block uppercase tracking-wider">
-            Hoặc chọn nhanh mã Key mẫu đã cấp trong hệ thống:
+        {/* Quick Sample Keys Picker (Cyber Style Grid) */}
+        <div className="p-3 bg-[#070b14]/70 border border-gray-800 rounded-xl space-y-2">
+          <span className="text-[10.5px] font-bold text-gray-400 block uppercase tracking-wider">
+            ⚡ Hoặc chọn nhanh mã Key mẫu đã cấp trong hệ thống:
           </span>
           <div className="grid grid-cols-2 gap-2">
             {[
@@ -264,24 +257,26 @@ export const LicenseGatekeeper = ({ onActivated, onClose }) => {
                   setLicenseKey(item.key);
                   handleVerify(item.key);
                 }}
-                className="p-2 rounded-lg bg-[#141d30] hover:bg-[#1c2842] border border-gray-700/60 hover:border-purple-500/60 text-left transition-all cursor-pointer group"
+                className="p-2.5 rounded-lg bg-[#0c1322] hover:bg-emerald-950/40 border border-gray-800 hover:border-emerald-500/50 text-left transition-all cursor-pointer group shadow-sm"
               >
-                <div className="font-mono text-xs font-bold text-cyan-300 group-hover:text-amber-300 transition-colors">
+                <div className="font-mono text-xs font-bold text-cyan-300 group-hover:text-emerald-300 transition-colors">
                   {item.key}
                 </div>
-                <div className="text-[10px] text-gray-400 mt-0.5">{item.desc}</div>
+                <div className="text-[10px] text-gray-400 group-hover:text-gray-300 transition-colors mt-0.5">
+                  {item.desc}
+                </div>
               </button>
             ))}
           </div>
         </div>
 
-        {/* Status / Error Message */}
+        {/* Status Feedback Banner */}
         {statusMessage && (
           <div
             className={`p-3 rounded-xl text-xs font-semibold flex items-center gap-2 animate-fadeIn ${
               statusMessage.type === 'success'
-                ? 'bg-emerald-950/80 text-emerald-300 border border-emerald-500/50'
-                : 'bg-rose-950/80 text-rose-300 border border-rose-500/50'
+                ? 'bg-emerald-950/80 text-emerald-300 border border-emerald-400 shadow-[0_0_20px_rgba(16,185,129,0.2)]'
+                : 'bg-rose-950/80 text-rose-300 border border-rose-500/60'
             }`}
           >
             {statusMessage.type === 'success' ? (
@@ -293,34 +288,37 @@ export const LicenseGatekeeper = ({ onActivated, onClose }) => {
           </div>
         )}
 
-        {/* Action Button */}
+        {/* Action Button: Glowing Cyber Emerald/Cyan */}
         <button
           onClick={() => handleVerify()}
           disabled={isVerifying}
-          className={`w-full py-3 px-4 rounded-xl text-sm font-bold flex items-center justify-center gap-2 transition-all shadow-lg ${
+          className={`w-full py-3.5 px-4 rounded-xl text-sm font-black tracking-wider uppercase flex items-center justify-center gap-2 transition-all cursor-pointer ${
             isVerifying
-              ? 'bg-gray-700 text-gray-400 cursor-not-allowed'
-              : 'bg-gradient-to-r from-purple-600 via-indigo-600 to-cyan-600 hover:from-purple-500 hover:to-cyan-500 text-white shadow-purple-900/50 cursor-pointer'
+              ? 'bg-gray-800 text-gray-500 cursor-not-allowed border border-gray-700'
+              : 'bg-gradient-to-r from-emerald-500 via-teal-500 to-cyan-500 hover:from-emerald-400 hover:to-cyan-400 text-gray-950 shadow-[0_0_25px_rgba(16,185,129,0.35)] hover:shadow-[0_0_35px_rgba(16,185,129,0.55)] active:scale-[0.99]'
           }`}
         >
           {isVerifying ? (
             <>
-              <RefreshCw size={16} className="animate-spin" />
-              <span>Đang xác thực mã bản quyền với hệ thống...</span>
+              <RefreshCw size={16} className="animate-spin text-gray-400" />
+              <span>Đang kiểm tra chứng chỉ bản quyền...</span>
             </>
           ) : (
             <>
-              <ShieldCheck size={16} />
-              <span>XÁC THỰC &amp; VÀO PEIPEI DUB TOOL</span>
+              <Zap size={16} strokeWidth={2.5} />
+              <span>XÁC THỰC &amp; VÀO PEIPEI DUB STUDIO</span>
             </>
           )}
         </button>
       </div>
 
       {/* 3. Footer */}
-      <div className="px-5 py-3 bg-[#080c16] border-t border-gray-800/80 flex items-center justify-between text-[11px] text-gray-400 flex-shrink-0">
+      <div className="relative z-10 px-6 py-3 bg-[#070b14] border-t border-emerald-500/15 flex items-center justify-between text-[11px] text-gray-400 flex-shrink-0">
         <span>Chưa có Key? Liên hệ Quản trị viên để cấp quyền.</span>
-        <span className="text-purple-400 font-medium">Bảo vệ chống sao chép 256-bit</span>
+        <span className="text-emerald-400 font-mono text-[10.5px] flex items-center gap-1">
+          <Lock size={11} />
+          <span>Hardware AES-256</span>
+        </span>
       </div>
     </div>
   );

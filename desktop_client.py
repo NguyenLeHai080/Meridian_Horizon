@@ -196,10 +196,10 @@ def main():
             f.write(f"Webview loaded from: {getattr(webview, '__file__', 'unknown')}\n")
 
         has_active_license = is_license_active()
-        win_width = 1340 if has_active_license else 600
-        win_height = 840 if has_active_license else 710
+        win_width = 1340 if has_active_license else 580
+        win_height = 840 if has_active_license else 680
         win_title = APP_TITLE if has_active_license else ACTIVATION_TITLE
-        min_size = (1040, 680) if has_active_license else (560, 660)
+        min_size = (1040, 680) if has_active_license else (540, 640)
 
         api = DesktopApi()
 
@@ -210,7 +210,7 @@ def main():
             width=win_width,
             height=win_height,
             min_size=min_size,
-            background_color="#0c101c",
+            background_color="#0b0f17",
             js_api=api,
             focus=True
         )
