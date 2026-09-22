@@ -78,8 +78,16 @@ export const StudioPage = () => {
     setLicenseModalOpen(false);
   };
 
-  // Trạng thái hiển thị Màn hình Khóa Kích hoạt (có thể Đóng/Mở linh hoạt)
-  const [isGatekeeperOpen, setIsGatekeeperOpen] = useState(!licenseInfo);
+  // NẾU CHƯA KÍCH HOẠT: HIỂN THỊ TRỰC TIẾP CỬA SỔ NHẬP KEY GỌN GÀNG (KHÔNG CÓ KHUNG NGOÀI)
+  if (!licenseInfo) {
+    return (
+      <LicenseGatekeeper
+        onActivated={(info) => {
+          setLicenseInfo(info);
+        }}
+      />
+    );
+  }
 
   // Gói nạp credit mẫu
   const [selectedPackage, setSelectedPackage] = useState('pack_50k');
@@ -89,13 +97,7 @@ export const StudioPage = () => {
       {/* 1. Left Sidebar */}
       <StudioSidebar
         onOpenCreditModal={() => setCreditModalOpen(true)}
-        onOpenLicenseModal={() => {
-          if (!licenseInfo) {
-            setIsGatekeeperOpen(true);
-          } else {
-            setLicenseModalOpen(true);
-          }
-        }}
+        onOpenLicenseModal={() => setLicenseModalOpen(true)}
         licenseInfo={licenseInfo}
       />
 
@@ -430,17 +432,6 @@ export const StudioPage = () => {
           )}
         </div>
       </Modal>
-
-      {/* MÀN HÌNH NHẬP KEY BẢN QUYỀN (MODAL CÓ THỂ ĐÓNG/MỞ) */}
-      {isGatekeeperOpen && (
-        <LicenseGatekeeper
-          onActivated={(info) => {
-            setLicenseInfo(info);
-            setIsGatekeeperOpen(false);
-          }}
-          onClose={() => setIsGatekeeperOpen(false)}
-        />
-      )}
     </div>
   );
 };

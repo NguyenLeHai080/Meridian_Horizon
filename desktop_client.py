@@ -26,8 +26,60 @@ if getattr(sys, 'stdout', None) is None:
 if getattr(sys, 'stderr', None) is None:
     sys.stderr = io.StringIO()
 
+import json
+
+ACTIVATION_TITLE = "PeiPei Dub 1.5.73 - Kích hoạt Bản quyền"
 APP_TITLE = "PeiPei Dub 1.5.73 - Dịch & lồng tiếng video"
 VERSION = "1.5.73"
+
+def get_license_file_path():
+    return os.path.join(os.environ.get('LOCALAPPDATA', os.environ.get('TEMP', '.')), 'PeiPeiDub', 'license.json')
+
+def is_license_active():
+    """Kiểm tra xem máy trạm đã kích hoạt bản quyền hay chưa"""
+    try:
+        path = get_license_file_path()
+        if os.path.exists(path):
+            with open(path, 'r', encoding='utf-8') as f:
+                data = json.load(f)
+                if data.get('license_key'):
+                    return True
+    except Exception:
+        pass
+    return False
+
+class DesktopApi:
+    """API phơi ra cho JavaScript trong React tương tác với cửa sổ Native Windows"""
+    def __init__(self):
+        self.window = None
+
+    def set_window(self, window):
+        self.window = window
+
+    def minimize(self):
+        """Thu nhỏ cửa sổ"""
+        if self.window:
+            self.window.minimize()
+
+    def close(self):
+        """Đóng ứng dụng"""
+        if self.window:
+            self.window.destroy()
+
+    def activate_success(self, license_data=None):
+        """Khi kích hoạt thành công: mở rộng cửa sổ sang kích thước Studio 1340x840"""
+        if self.window:
+            self.window.resize(1340, 840)
+            self.window.set_title(APP_TITLE)
+        if license_data:
+            try:
+                path = get_license_file_path()
+                os.makedirs(os.path.dirname(path), exist_ok=True)
+                with open(path, 'w', encoding='utf-8') as f:
+                    json.dump(license_data, f, ensure_ascii=False)
+            except Exception:
+                pass
+        return True
 
 def find_free_port():
     """Tìm cổng socket khả dụng tự do trên máy trạm"""
@@ -143,16 +195,26 @@ def main():
         with open(log_file, 'a', encoding='utf-8') as f:
             f.write(f"Webview loaded from: {getattr(webview, '__file__', 'unknown')}\n")
 
-        # Tạo cửa sổ Desktop Ứng dụng chuẩn Windows
+        has_active_license = is_license_active()
+        win_width = 1340 if has_active_license else 600
+        win_height = 840 if has_active_license else 710
+        win_title = APP_TITLE if has_active_license else ACTIVATION_TITLE
+        min_size = (1040, 680) if has_active_license else (560, 660)
+
+        api = DesktopApi()
+
+        # Tạo cửa sổ Desktop Ứng dụng chuẩn Windows (thu gọn ở màn hình nhập Key, mở rộng khi đã có bản quyền)
         window = webview.create_window(
-            title=APP_TITLE,
+            title=win_title,
             url=url,
-            width=1340,
-            height=840,
-            min_size=(1040, 680),
-            background_color="#070a12",
+            width=win_width,
+            height=win_height,
+            min_size=min_size,
+            background_color="#0c101c",
+            js_api=api,
             focus=True
         )
+        api.set_window(window)
         with open(log_file, 'a', encoding='utf-8') as f:
             f.write("Window created successfully, calling webview.start()...\n")
         webview.start(debug=False)
