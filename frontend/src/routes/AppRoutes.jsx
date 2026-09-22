@@ -1,6 +1,7 @@
 import React from 'react';
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { LoginPage } from '@/modules/auth/pages/LoginPage';
+import { StudioPage } from '@/modules/studio/pages/StudioPage';
 import { AdminDashboardPage } from '@/modules/admin/pages/AdminDashboardPage';
 import { AdminUsersPage } from '@/modules/admin/pages/AdminUsersPage';
 import { AdminLicensesPage } from '@/modules/admin/pages/AdminLicensesPage';
@@ -39,6 +40,10 @@ export const AppRoutes = () => {
             </PublicRoute>
           }
         />
+
+        {/* Tuyến đường dành cho Desktop Client Tool */}
+        <Route path="/tool" element={<StudioPage />} />
+        <Route path="/studio" element={<StudioPage />} />
 
         {/* Cắt Web Studio trên web - Chuyển hướng sang trang Tải Tool Desktop */}
         <Route

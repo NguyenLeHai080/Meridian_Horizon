@@ -4,45 +4,25 @@ import { Terminal, CheckCircle2, Circle } from 'lucide-react';
 import useStudioStore from '../store/studioStore';
 
 export const ExecutionLogTerminal = () => {
-  const { t } = useTranslation();
   const logs = useStudioStore((state) => state.logs);
 
   return (
-    <div className="flex-shrink-0 bg-[#080c14] border-t border-gray-800 p-3 select-none">
-      <div className="flex items-center justify-between mb-2">
-        <div className="flex items-center gap-2">
-          <span className="flex items-center gap-1 text-xs font-bold text-emerald-400 bg-emerald-950/60 px-2 py-0.5 rounded border border-emerald-800/80">
-            <CheckCircle2 size={12} />
-            <span>{t('studio.completed')}</span>
-          </span>
-          <span className="text-xs font-semibold text-gray-400 flex items-center gap-1">
-            <Terminal size={12} />
-            <span>{t('studio.logTitle')}</span>
-          </span>
-        </div>
-        <div className="flex items-center gap-1 text-[11px] text-emerald-400">
-          <span className="w-2 h-2 rounded-full bg-emerald-500 animate-ping" />
-          <span>{t('studio.engineReady')}</span>
-        </div>
+    <div className="flex-shrink-0 bg-[#080c14] border-t border-gray-800 p-2.5 select-none font-mono">
+      <div className="flex items-center gap-2 mb-1.5">
+        <span className="text-xs font-bold text-emerald-400 flex items-center gap-1">
+          HOÀN THÀNH <span className="text-[13px]">✓</span> Nhật ký
+        </span>
       </div>
 
-      {/* Terminal Output Window */}
-      <div className="h-24 bg-[#05070d] border border-gray-900 rounded-lg p-2.5 overflow-y-auto font-mono text-[11px] text-gray-300 space-y-1 scrollable-body shadow-inner">
-        {logs.map((log) => {
-          const colorClass =
-            log.type === 'success'
-              ? 'text-emerald-400'
-              : log.type === 'warning'
-              ? 'text-amber-400'
-              : 'text-gray-400';
-
-          return (
-            <div key={log.id} className="flex items-start gap-2 leading-relaxed">
-              <span className="text-gray-600 select-none">❯</span>
-              <span className={colorClass}>{log.text}</span>
-            </div>
-          );
-        })}
+      {/* Terminal Output Box */}
+      <div className="h-20 bg-[#05070d] border border-gray-900 rounded p-2 overflow-y-auto text-[11px] text-gray-300 space-y-0.5 scrollable-body leading-relaxed">
+        <div className="text-gray-300">xong nap lai bang Nguon='File SRT co san' de render lai, khong ton credit dich.</div>
+        <div className="text-gray-400">• Don 0.07 GB file tam cua lan chay nay (giu lai log/phu de de chan doan).</div>
+        <div className="text-emerald-400 font-bold">HOÀN THÀNH!</div>
+        <div className="text-gray-300 flex items-center gap-1">
+          <span className="text-emerald-400 font-bold">▶ Video:</span>
+          <span>C:\Users\tung\Desktop\dich phim trung\神性游戏_第23集_bilisub.mp4</span>
+        </div>
       </div>
     </div>
   );

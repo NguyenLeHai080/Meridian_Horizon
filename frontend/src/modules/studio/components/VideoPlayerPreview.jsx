@@ -65,31 +65,31 @@ export const VideoPlayerPreview = ({ onOpenSubtitleModal }) => {
       </div>
 
       {/* 2. Controls Under Video */}
-      <div className="mt-3 space-y-2">
-        <div className="flex items-center justify-center text-xs text-gray-400 gap-1 cursor-pointer hover:text-gray-200">
-          <Image size={13} />
-          <span>Lấy frame xem trước</span>
+      <div className="mt-3 space-y-2.5">
+        <div className="flex items-center justify-between gap-3">
+          <button
+            onClick={() => {}}
+            className="flex-1 py-1.5 px-3 rounded-lg bg-[#1a233a] hover:bg-[#222f4f] text-gray-200 border border-gray-700 text-xs font-semibold flex items-center justify-center gap-1.5 transition-colors shadow-sm cursor-pointer"
+          >
+            <Image size={13} className="text-cyan-400" />
+            <span>✨ Lấy frame xem trước</span>
+          </button>
+
+          <button
+            onClick={onOpenSubtitleModal}
+            className="flex-1 py-1.5 px-3 rounded-lg bg-[#581c87] hover:bg-[#6b21a8] text-white font-bold text-xs border border-purple-400/40 flex items-center justify-center gap-1.5 transition-all shadow-md cursor-pointer"
+          >
+            <Edit3 size={13} />
+            <span>📝 Mở Editor (căn phụ đề + che vùng, xem video)</span>
+          </button>
         </div>
 
-        {/* Nút to mở Editor chuẩn ảnh mẫu */}
-        <button
-          onClick={onOpenSubtitleModal}
-          className="w-full py-2.5 px-4 rounded-lg bg-[#141d30] hover:bg-[#1a253d] text-gray-200 hover:text-white font-semibold text-xs border border-purple-500/40 flex items-center justify-center gap-2 transition-all shadow-md"
-        >
-          <Edit3 size={14} className="text-purple-400" />
-          <span>Mở Editor (sửa phụ đề song ngữ + chỉnh timecode)</span>
-        </button>
-
         {/* Thanh Progress Bar 100% */}
-        <div className="w-full bg-[#111827] rounded-full h-3.5 p-0.5 border border-gray-800 overflow-hidden relative">
+        <div className="w-full bg-[#111827] rounded-full h-2.5 border border-emerald-500/40 overflow-hidden relative">
           <div
-            className="bg-emerald-500 h-full rounded-full transition-all duration-500 flex items-center justify-center"
+            className="bg-emerald-500 h-full rounded-full transition-all duration-500 flex items-center justify-center shadow-lg shadow-emerald-500/50"
             style={{ width: `${progress}%` }}
-          >
-            <span className="text-[9px] font-bold text-black select-none tracking-tight">
-              {progress}%
-            </span>
-          </div>
+          />
         </div>
       </div>
     </div>

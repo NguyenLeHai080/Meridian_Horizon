@@ -24,6 +24,30 @@ export const StudioPage = () => {
   const [isCreditModalOpen, setCreditModalOpen] = useState(false);
   const [isSubtitleModalOpen, setSubtitleModalOpen] = useState(false);
   const [isVideoSelectModalOpen, setVideoSelectModalOpen] = useState(false);
+  const [isLicenseModalOpen, setLicenseModalOpen] = useState(false);
+
+  const [licenseKeyInput, setLicenseKeyInput] = useState('JACS-9B21-4CA0-D1D1');
+  const [hwid] = useState('PC JACS-WIN-510A-6CD39D');
+  const [isVerifying, setIsVerifying] = useState(false);
+  const [verifyMessage, setVerifyMessage] = useState(null);
+
+  const handleVerifyLicense = async () => {
+    setIsVerifying(true);
+    try {
+      // Giả lập hoặc gọi endpoint xác thực bản quyền
+      if (licenseKeyInput.trim().toUpperCase().includes('JACS') || licenseKeyInput.trim().toUpperCase().includes('MH') || licenseKeyInput.trim().toUpperCase().includes('VIP')) {
+        setVerifyMessage({ type: 'success', text: '✓ Kích hoạt bản quyền thành công trên thiết bị này!' });
+        setTimeout(() => {
+          setLicenseModalOpen(false);
+          setVerifyMessage(null);
+        }, 1200);
+      } else {
+        setVerifyMessage({ type: 'error', text: '✕ Mã bản quyền không hợp lệ hoặc đã hết hạn.' });
+      }
+    } finally {
+      setIsVerifying(false);
+    }
+  };
 
   // Gói nạp credit mẫu
   const [selectedPackage, setSelectedPackage] = useState('pack_50k');
@@ -31,7 +55,10 @@ export const StudioPage = () => {
   return (
     <div className="flex h-screen w-screen bg-[#070a12] text-gray-100 overflow-hidden font-sans">
       {/* 1. Left Sidebar */}
-      <StudioSidebar onOpenCreditModal={() => setCreditModalOpen(true)} />
+      <StudioSidebar
+        onOpenCreditModal={() => setCreditModalOpen(true)}
+        onOpenLicenseModal={() => setLicenseModalOpen(true)}
+      />
 
       {/* 2. Main Studio Workflow Canvas */}
       <div className="flex-1 flex flex-col min-w-0 h-full">
@@ -289,6 +316,71 @@ export const StudioPage = () => {
               </div>
             ))}
           </div>
+        </div>
+      </Modal>
+
+      {/* MODAL 4: KÍCH HOẠT BẢN QUYỀN (LICENSE & HWID) */}
+      <Modal
+        isOpen={isLicenseModalOpen}
+        onClose={() => setLicenseModalOpen(false)}
+        title="Kích Hoạt Bản Quyền PeiPei Dub Studio"
+        subtitle="Xác thực mã bản quyền với hệ thống máy chủ Quản trị Admin"
+        size="md"
+        footer={
+          <>
+            <Button variant="outline" size="sm" onClick={() => setLicenseModalOpen(false)}>
+              Đóng
+            </Button>
+            <Button
+              variant="primary"
+              size="sm"
+              className="bg-emerald-600 hover:bg-emerald-700 font-bold text-white border-none"
+              onClick={handleVerifyLicense}
+              disabled={isVerifying}
+            >
+              {isVerifying ? 'Đang xác thực...' : 'Xác thực & Kích hoạt'}
+            </Button>
+          </>
+        }
+      >
+        <div className="space-y-4 text-xs">
+          <div className="p-3 bg-[#0d1424] border border-gray-800 rounded-xl space-y-1">
+            <span className="text-[10px] uppercase font-bold text-gray-400">Mã phần cứng máy trạm (HWID):</span>
+            <div className="flex items-center justify-between">
+              <span className="font-mono text-cyan-400 font-bold text-sm">{hwid}</span>
+              <button
+                onClick={() => {
+                  navigator.clipboard.writeText(hwid);
+                  alert('Đã sao chép mã HWID vào bộ nhớ tạm!');
+                }}
+                className="px-2.5 py-1 bg-gray-800 hover:bg-gray-700 text-gray-300 rounded text-[11px] font-semibold transition-colors cursor-pointer"
+              >
+                Sao chép
+              </button>
+            </div>
+          </div>
+
+          <div>
+            <label className="block text-gray-300 font-semibold mb-1">Mã Bản Quyền (License Key):</label>
+            <input
+              type="text"
+              value={licenseKeyInput}
+              onChange={(e) => setLicenseKeyInput(e.target.value)}
+              placeholder="VD: JACS-9B21-4CA0-D1D1"
+              className="w-full bg-[#162035] border border-gray-700 rounded-lg p-2.5 text-amber-300 font-mono font-bold text-sm focus:outline-none focus:border-purple-500"
+            />
+            <p className="text-[10px] text-gray-500 mt-1">
+              Nhập mã key được cấp bởi Quản trị viên trong trang Admin Suite.
+            </p>
+          </div>
+
+          {verifyMessage && (
+            <div className={`p-3 rounded-lg text-xs font-semibold ${
+              verifyMessage.type === 'success' ? 'bg-emerald-950/80 text-emerald-300 border border-emerald-500/50' : 'bg-rose-950/80 text-rose-300 border border-rose-500/50'
+            }`}>
+              {verifyMessage.text}
+            </div>
+          )}
         </div>
       </Modal>
     </div>

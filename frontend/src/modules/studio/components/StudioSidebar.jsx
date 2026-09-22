@@ -1,5 +1,4 @@
 import React from 'react';
-import { useTranslation } from 'react-i18next';
 import {
   Download,
   Clock,
@@ -14,80 +13,111 @@ import {
   FileSpreadsheet,
   Plus,
   Sparkles,
+  Headphones
 } from 'lucide-react';
 import useStudioStore from '../store/studioStore';
 
-export const StudioSidebar = ({ onOpenCreditModal }) => {
-  const { t } = useTranslation();
+export const StudioSidebar = ({ onOpenCreditModal, onOpenLicenseModal }) => {
   const credits = useStudioStore((state) => state.credits);
 
-  const menuItems = [
-    { id: 'download', icon: <Download size={16} />, label: t('sidebar.downloadVideo') },
-    { id: 'queue', icon: <Clock size={16} />, label: t('sidebar.downloadQueue') },
-    { id: 'scan', icon: <Radio size={16} />, label: t('sidebar.scanChannel') },
-    { id: 'srt', icon: <FileText size={16} />, label: t('sidebar.selectSrt') },
-    { id: 'split', icon: <Scissors size={16} />, label: t('sidebar.splitVideo') },
-    { id: 'gpu', icon: <Zap size={16} className="text-amber-400" />, label: t('sidebar.gpuAcceleration') },
-    { id: 'voice_clone', icon: <Mic size={16} className="text-rose-400" />, label: t('sidebar.voiceClone') },
-    { id: 'offline_tts', icon: <Volume2 size={16} className="text-emerald-400" />, label: t('sidebar.offlineVoice') },
-    { id: 'api_keys', icon: <Key size={16} className="text-cyan-400" />, label: t('sidebar.apiKeys') },
-    { id: 'license', icon: <ShieldCheck size={16} className="text-blue-400" />, label: t('sidebar.license') },
-    { id: 'log', icon: <FileSpreadsheet size={16} />, label: t('sidebar.videoLog') },
-  ];
-
   return (
-    <aside className="w-60 flex-shrink-0 bg-[#0d121f] border-r border-gray-800 flex flex-col justify-between select-none h-full">
-      {/* 1. Brand Header */}
-      <div>
-        <div className="p-4 border-b border-gray-800 flex items-center gap-3 bg-[#080d18]">
-          <div className="w-10 h-10 rounded-xl bg-gradient-to-tr from-purple-600 via-indigo-500 to-cyan-400 flex items-center justify-center text-white shadow-lg shadow-purple-900/40">
-            <Sparkles size={22} />
+    <aside className="w-56 flex-shrink-0 bg-[#0c101c] border-r border-gray-800 flex flex-col justify-between select-none h-full text-gray-300 font-sans z-10">
+      <div className="flex-1 overflow-y-auto scrollable-body">
+        {/* 1. Panda Mascot Header Box */}
+        <div className="p-3 bg-gradient-to-b from-[#6b21a8] to-[#4c1d95] text-white flex flex-col items-center justify-center text-center select-none shadow-md">
+          {/* Panda Icon with headphones */}
+          <div className="w-16 h-16 rounded-2xl bg-[#581c87] border border-purple-400/40 flex items-center justify-center shadow-lg relative my-1">
+            <span className="text-3xl">🐼</span>
+            <div className="absolute -top-1 -right-1 w-5 h-5 rounded-full bg-cyan-400 text-gray-900 flex items-center justify-center">
+              <Headphones size={11} />
+            </div>
           </div>
-          <div>
-            <h1 className="font-bold text-sm tracking-wide text-gray-100 flex items-center gap-1">
-              PeiPei <span className="text-xs px-1 py-0.5 rounded bg-purple-900/60 text-purple-300 font-normal">Dub</span>
-            </h1>
-            <p className="text-[10px] text-gray-400">Meridian Horizon v1.5.73</p>
-          </div>
+          <h1 className="font-extrabold text-base tracking-wide text-white mt-1">PeiPei</h1>
+          <p className="text-[10px] text-purple-200 leading-tight">
+            PeiPei Dub - Dịch &amp; lồng tiếng video
+          </p>
+          <span className="text-[9px] text-purple-300 font-mono">Phiên bản 1.5.73</span>
         </div>
 
-        {/* 2. Menu Items Navigation */}
-        <nav className="p-2 space-y-0.5 overflow-y-auto max-h-[calc(100vh-230px)] scrollable-body">
-          <p className="px-3 py-1.5 text-[10px] uppercase font-bold text-gray-500 tracking-wider">
-            Nguồn & Công cụ
-          </p>
-          {menuItems.map((item, idx) => (
+        {/* 2. Menu Navigation */}
+        <div className="p-2 space-y-3">
+          {/* Nhóm NGUỒN */}
+          <div className="space-y-0.5">
+            <p className="px-2.5 text-[10px] uppercase font-bold text-gray-500 tracking-wider">
+              NGUỒN
+            </p>
+            {[
+              { icon: <Download size={13} />, label: '📥 Tải video' },
+              { icon: <Clock size={13} />, label: '📁 Hàng chờ tải (qua đêm)' },
+              { icon: <Radio size={13} />, label: '🚀 Quét kênh (tải hàng loạt)' },
+              { icon: <FileText size={13} />, label: '📄 Chọn SRT' },
+            ].map((item, idx) => (
+              <button
+                key={idx}
+                className="w-full flex items-center gap-2 px-2.5 py-1.5 rounded-lg text-xs text-gray-300 hover:text-white hover:bg-[#161f36] transition-colors text-left"
+              >
+                <span className="truncate">{item.label}</span>
+              </button>
+            ))}
+          </div>
+
+          {/* Nhóm CÔNG CỤ */}
+          <div className="space-y-0.5">
+            <p className="px-2.5 text-[10px] uppercase font-bold text-gray-500 tracking-wider">
+              CÔNG CỤ
+            </p>
+            {[
+              { label: '⏳ Hàng chờ dịch (0)' },
+              { label: '✂️ Ghép / Tách video' },
+              { label: '⚡ Tăng tốc GPU' },
+              { label: '🎙️ Giọng clone (tải gói)' },
+              { label: '🔊 Giọng Việt offline (tải gói)' },
+              { label: '🔑 API Keys' },
+            ].map((item, idx) => (
+              <button
+                key={idx}
+                className="w-full flex items-center gap-2 px-2.5 py-1.5 rounded-lg text-xs text-gray-300 hover:text-white hover:bg-[#161f36] transition-colors text-left"
+              >
+                <span className="truncate">{item.label}</span>
+              </button>
+            ))}
+
+            {/* Nút Bản Quyền Kích Hoạt (Nhấp mở Modal) */}
             <button
-              key={item.id}
-              className={`w-full flex items-center gap-2.5 px-3 py-2 rounded-lg text-xs font-medium transition-colors text-left ${
-                idx === 0
-                  ? 'bg-purple-600/20 text-purple-300 border border-purple-500/30'
-                  : 'text-gray-400 hover:text-gray-100 hover:bg-gray-800/60'
-              }`}
+              onClick={onOpenLicenseModal}
+              className="w-full flex items-center justify-between px-2.5 py-1.5 rounded-lg text-xs font-bold text-emerald-400 bg-emerald-950/40 border border-emerald-500/40 hover:bg-emerald-900/50 transition-all text-left shadow-sm"
+              title="Nhấp để nhập Key mới hoặc xem hạn dùng"
             >
-              <span className="flex-shrink-0">{item.icon}</span>
-              <span className="truncate">{item.label}</span>
+              <span>🛡️ Bản quyền (còn 43 ngày)</span>
             </button>
-          ))}
-        </nav>
+
+            <button
+              className="w-full flex items-center gap-2 px-2.5 py-1.5 rounded-lg text-xs text-gray-300 hover:text-white hover:bg-[#161f36] transition-colors text-left"
+            >
+              <span className="truncate">📜 Nhật ký làm video</span>
+            </button>
+          </div>
+        </div>
       </div>
 
-      {/* 3. Bottom Credit Box (Giống hệt góc trái dưới ảnh mẫu) */}
-      <div className="p-3 border-t border-gray-800 bg-[#090e1a]">
-        <div className="p-3 rounded-lg bg-[#141b2d] border border-gray-700/60 flex items-center justify-between">
-          <div>
-            <span className="text-[10px] uppercase text-gray-400 font-semibold block">Số dư Credit</span>
-            <span className="text-base font-extrabold text-emerald-400 font-mono tracking-tight">
-              {credits.toLocaleString()}
-            </span>
+      {/* 3. Bottom Credit Box & Status */}
+      <div className="p-2.5 border-t border-gray-800 bg-[#090d16] space-y-2">
+        <div className="p-2.5 rounded-xl bg-[#111625] border border-gray-800 space-y-1">
+          <div className="text-[10px] uppercase font-bold text-gray-400">SỐ DƯ CREDIT</div>
+          <div className="text-base font-extrabold text-emerald-400 font-mono tracking-tight">
+            {credits.toLocaleString()}
           </div>
           <button
             onClick={onOpenCreditModal}
-            className="flex items-center gap-1 px-2.5 py-1 text-xs font-semibold rounded bg-purple-600 hover:bg-purple-700 text-white shadow-sm transition-all"
+            className="w-full py-1 px-2 rounded-lg bg-[#1a233a] hover:bg-[#222f4f] text-cyan-300 border border-cyan-500/30 text-xs font-bold transition-all"
           >
-            <Plus size={12} />
-            <span>Mua thêm</span>
+            + Mua thêm
           </button>
+        </div>
+
+        <div className="text-[10px] text-emerald-400 font-semibold px-2 flex items-center gap-1.5">
+          <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
+          <span>Engine sẵn sàng</span>
         </div>
       </div>
     </aside>

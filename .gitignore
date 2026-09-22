@@ -41,3 +41,12 @@ backend/*.db
 # OS Files
 .DS_Store
 Thumbs.db
+
+# Large Binary Installers & Downloads
+*.exe
+*.zip
+*.dmg
+*.tar.gz
+frontend/public/downloads/*.exe
+frontend/public/downloads/*.zip
+backend/storage/downloads/
