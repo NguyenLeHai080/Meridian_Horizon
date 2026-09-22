@@ -28,7 +28,7 @@ export const LoginPage = () => {
         setIsRegisterMode(false);
       } else {
         await login(email, password);
-        navigate('/app/studio');
+        navigate('/admin/dashboard');
       }
     } catch (err) {
       setFormError(err.message || 'Thao tác không thành công.');

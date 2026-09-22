@@ -10,6 +10,7 @@ import {
   ArrowLeft,
   ShieldAlert,
   Sparkles,
+  Download,
 } from 'lucide-react';
 
 export const AdminSidebar = () => {
@@ -19,6 +20,7 @@ export const AdminSidebar = () => {
     { to: '/admin/dashboard', icon: <LayoutDashboard size={18} />, label: 'Bảng điều khiển' },
     { to: '/admin/users', icon: <Users size={18} />, label: 'Quản lý Người dùng' },
     { to: '/admin/licenses', icon: <KeyRound size={18} />, label: 'Bản quyền Tool' },
+    { to: '/admin/downloads', icon: <Download size={18} className="text-cyan-400" />, label: 'Tải Tool (Win/macOS)' },
   ];
 
   return (

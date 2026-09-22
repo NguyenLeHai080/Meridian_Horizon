@@ -5,6 +5,7 @@ import { StudioPage } from '@/modules/studio/pages/StudioPage';
 import { AdminDashboardPage } from '@/modules/admin/pages/AdminDashboardPage';
 import { AdminUsersPage } from '@/modules/admin/pages/AdminUsersPage';
 import { AdminLicensesPage } from '@/modules/admin/pages/AdminLicensesPage';
+import { AdminToolDownloadPage } from '@/modules/admin/pages/AdminToolDownloadPage';
 import useAuthStore from '@/modules/auth/store/authStore';
 
 // Bảo vệ tuyến đường riêng tư (Private Route Guard)
@@ -20,7 +21,7 @@ const PrivateRoute = ({ children }) => {
 const PublicRoute = ({ children }) => {
   const { isAuthenticated } = useAuthStore();
   if (isAuthenticated) {
-    return <Navigate to="/app/studio" replace />;
+    return <Navigate to="/admin/dashboard" replace />;
   }
   return children;
 };
@@ -75,11 +76,19 @@ export const AppRoutes = () => {
             </PrivateRoute>
           }
         />
+        <Route
+          path="/admin/downloads"
+          element={
+            <PrivateRoute>
+              <AdminToolDownloadPage />
+            </PrivateRoute>
+          }
+        />
         <Route path="/admin" element={<Navigate to="/admin/dashboard" replace />} />
 
-        {/* Redirect mặc định */}
-        <Route path="/" element={<Navigate to="/app/studio" replace />} />
-        <Route path="*" element={<Navigate to="/app/studio" replace />} />
+        {/* Redirect mặc định vào trang Admin */}
+        <Route path="/" element={<Navigate to="/admin/dashboard" replace />} />
+        <Route path="*" element={<Navigate to="/admin/dashboard" replace />} />
       </Routes>
     </BrowserRouter>
   );
