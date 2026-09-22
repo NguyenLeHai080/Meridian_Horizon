@@ -20,7 +20,10 @@ import useStudioStore from '../store/studioStore';
 export const StudioSidebar = ({ onOpenCreditModal, onOpenLicenseModal, licenseInfo }) => {
   const credits = useStudioStore((state) => state.credits);
 
-  const licenseLabel = licenseInfo?.is_lifetime
+  const isActivated = !!licenseInfo;
+  const licenseLabel = !isActivated
+    ? '🛡️ Kích hoạt Bản quyền'
+    : licenseInfo?.is_lifetime
     ? '🛡️ Bản quyền (Vĩnh viễn)'
     : `🛡️ Bản quyền (còn ${licenseInfo?.days_remaining ?? 43} ngày)`;
 
@@ -89,7 +92,11 @@ export const StudioSidebar = ({ onOpenCreditModal, onOpenLicenseModal, licenseIn
             {/* Nút Bản Quyền Kích Hoạt (Nhấp mở Modal) */}
             <button
               onClick={onOpenLicenseModal}
-              className="w-full flex items-center justify-between px-2.5 py-1.5 rounded-lg text-xs font-bold text-emerald-400 bg-emerald-950/40 border border-emerald-500/40 hover:bg-emerald-900/50 transition-all text-left shadow-sm cursor-pointer"
+              className={`w-full flex items-center justify-between px-2.5 py-1.5 rounded-lg text-xs font-bold transition-all text-left shadow-sm cursor-pointer ${
+                isActivated
+                  ? 'text-emerald-400 bg-emerald-950/40 border border-emerald-500/40 hover:bg-emerald-900/50'
+                  : 'text-amber-300 bg-amber-950/40 border border-amber-500/50 hover:bg-amber-900/50 animate-pulse'
+              }`}
               title="Nhấp để nhập Key mới hoặc xem hạn dùng"
             >
               <span>{licenseLabel}</span>

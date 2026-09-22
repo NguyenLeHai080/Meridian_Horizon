@@ -1,8 +1,8 @@
 import React, { useState, useEffect } from 'react';
-import { ShieldCheck, Key, Copy, Check, Sparkles, Headphones, AlertCircle, RefreshCw, Laptop, ExternalLink } from 'lucide-react';
+import { ShieldCheck, Key, Copy, Check, Sparkles, Headphones, AlertCircle, RefreshCw, Laptop, ExternalLink, X } from 'lucide-react';
 import { Button } from '@/shared/components/ui/Button';
 
-export const LicenseGatekeeper = ({ onActivated }) => {
+export const LicenseGatekeeper = ({ onActivated, onClose }) => {
   const [hwid, setHwid] = useState('PC-WIN-510A-6CD39D');
   const [licenseKey, setLicenseKey] = useState('');
   const [isVerifying, setIsVerifying] = useState(false);
@@ -128,30 +128,40 @@ export const LicenseGatekeeper = ({ onActivated }) => {
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-[#070a12] text-gray-100 p-4 font-sans select-none overflow-y-auto">
-      {/* Background ambient lighting */}
-      <div className="absolute top-1/4 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[550px] h-[550px] bg-gradient-to-br from-purple-900/25 via-indigo-900/20 to-cyan-900/10 rounded-full blur-3xl pointer-events-none" />
-
-      <div className="relative w-full max-w-xl bg-[#0c101c] border border-gray-800/90 rounded-2xl shadow-2xl overflow-hidden backdrop-blur-xl">
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/75 backdrop-blur-sm text-gray-100 p-4 font-sans select-none overflow-y-auto animate-fadeIn">
+      <div className="relative w-full max-w-xl bg-[#0c101c] border border-purple-500/40 rounded-2xl shadow-2xl overflow-hidden">
         {/* 1. Header Banner */}
-        <div className="p-6 bg-gradient-to-r from-[#581c87] via-[#4c1d95] to-[#1e1b4b] border-b border-purple-500/30 flex items-center gap-4 text-white">
-          <div className="w-16 h-16 rounded-2xl bg-[#4c1d95] border border-purple-300/40 flex items-center justify-center shadow-xl relative flex-shrink-0">
-            <span className="text-3xl">🐼</span>
-            <div className="absolute -top-1 -right-1 w-5 h-5 rounded-full bg-cyan-400 text-gray-900 flex items-center justify-center">
-              <Headphones size={11} />
+        <div className="p-5 bg-gradient-to-r from-[#581c87] via-[#4c1d95] to-[#1e1b4b] border-b border-purple-500/30 flex items-center justify-between text-white">
+          <div className="flex items-center gap-3.5">
+            <div className="w-14 h-14 rounded-2xl bg-[#4c1d95] border border-purple-300/40 flex items-center justify-center shadow-xl relative flex-shrink-0">
+              <span className="text-2xl">🐼</span>
+              <div className="absolute -top-1 -right-1 w-4 h-4 rounded-full bg-cyan-400 text-gray-900 flex items-center justify-center">
+                <Headphones size={9} />
+              </div>
+            </div>
+            <div>
+              <div className="flex items-center gap-2">
+                <h1 className="text-lg font-black tracking-wide text-white">PeiPei Dub Studio</h1>
+                <span className="px-2 py-0.5 rounded-full bg-cyan-400/20 text-cyan-300 text-[10px] font-mono font-bold border border-cyan-400/30">
+                  v1.5.73
+                </span>
+              </div>
+              <p className="text-xs text-purple-200 mt-0.5">
+                Khóa Bản Quyền Thiết Bị — Kích hoạt trước khi vào ứng dụng
+              </p>
             </div>
           </div>
-          <div>
-            <div className="flex items-center gap-2">
-              <h1 className="text-xl font-black tracking-wide text-white">PeiPei Dub Studio</h1>
-              <span className="px-2 py-0.5 rounded-full bg-cyan-400/20 text-cyan-300 text-[10px] font-mono font-bold border border-cyan-400/30">
-                v1.5.73
-              </span>
-            </div>
-            <p className="text-xs text-purple-200 mt-0.5">
-              Khóa Bản Quyền Thiết Bị — Kích hoạt trước khi vào ứng dụng
-            </p>
-          </div>
+
+          {/* Nút Đóng 'X' */}
+          {onClose && (
+            <button
+              onClick={onClose}
+              className="p-1.5 rounded-xl bg-black/40 hover:bg-rose-600/80 text-gray-300 hover:text-white transition-all cursor-pointer border border-white/10"
+              title="Đóng (Xem trước giao diện)"
+            >
+              <X size={18} />
+            </button>
+          )}
         </div>
 
         {/* 2. Body Content */}
@@ -286,7 +296,14 @@ export const LicenseGatekeeper = ({ onActivated }) => {
         {/* 3. Footer */}
         <div className="px-6 py-3.5 bg-[#080c16] border-t border-gray-800/80 flex items-center justify-between text-[11px] text-gray-400">
           <span>Chưa có Key? Liên hệ Quản trị viên để cấp quyền.</span>
-          <span className="text-purple-400 font-medium">Bảo vệ chống sao chép 256-bit</span>
+          {onClose && (
+            <button
+              onClick={onClose}
+              className="text-cyan-400 hover:text-cyan-300 font-bold underline cursor-pointer"
+            >
+              Đóng lại &amp; Xem giao diện Tool
+            </button>
+          )}
         </div>
       </div>
     </div>
