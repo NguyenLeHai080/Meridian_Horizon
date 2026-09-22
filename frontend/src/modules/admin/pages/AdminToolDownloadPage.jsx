@@ -75,11 +75,11 @@ export const AdminToolDownloadPage = () => {
                 <div className="p-2.5 bg-[#080c16] rounded-lg border border-gray-800 space-y-1 text-xs text-gray-300">
                   <div className="flex items-center gap-1.5">
                     <CheckCircle2 size={12} className="text-emerald-400" />
-                    <span className="text-[11px]">Tệp: <code>PeiPeiDub-Setup-v1.5.73.exe</code></span>
+                    <span className="text-[11px]">Tệp: <code>PeiPeiDub-Setup-v1.5.73.exe</code> (11.6 MB)</span>
                   </div>
                   <div className="flex items-center gap-1.5">
                     <Cpu size={12} className="text-blue-400" />
-                    <span className="text-[11px]">Hỗ trợ: 64-bit x86/x64</span>
+                    <span className="text-[11px]">Định dạng: Native Windows x64 PE (Chạy trực tiếp)</span>
                   </div>
                 </div>
               </div>
