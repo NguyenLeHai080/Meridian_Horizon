@@ -1,0 +1,36 @@
+// Animations
+@keyframes pulse-glow {
+  0%, 100% {
+    box-shadow: 0 0 15px rgba(124, 58, 237, 0.4);
+  }
+  50% {
+    box-shadow: 0 0 25px rgba(124, 58, 237, 0.7);
+  }
+}
+
+.animate-glow {
+  animation: pulse-glow 2.5s infinite;
+}
+
+@keyframes scanline {
+  0% {
+    transform: translateY(-100%);
+  }
+  100% {
+    transform: translateY(1000%);
+  }
+}
+
+.scanline-effect {
+  position: relative;
+  overflow: hidden;
+
+  &::after {
+    content: "";
+    position: absolute;
+    top: 0; left: 0; right: 0; height: 2px;
+    background: linear-gradient(to right, transparent, rgba(56, 189, 248, 0.6), transparent);
+    animation: scanline 4s linear infinite;
+    pointer-events: none;
+  }
+}

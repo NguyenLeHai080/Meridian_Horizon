@@ -1,0 +1,14 @@
+@use "variables" as *;
+@use "scrollbar" as *;
+@use "animations" as *;
+
+.glass-panel {
+  background: rgba(17, 24, 39, 0.85);
+  backdrop-filter: blur(12px);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.studio-border-glow {
+  border: 1px solid rgba(124, 58, 237, 0.5);
+  box-shadow: 0 0 10px rgba(124, 58, 237, 0.2);
+}

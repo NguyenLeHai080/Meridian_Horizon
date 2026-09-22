@@ -1,71 +1,16 @@
 <!DOCTYPE html>
-<html lang="vi">
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Meridian Horizon | Nền tảng Giải pháp Doanh nghiệp</title>
-  <style>
-    :root {
-      --primary: #2563eb;
-      --primary-hover: #1d4ed8;
-      --bg-dark: #0f172a;
-      --card-bg: #1e293b;
-      --text-main: #f8fafc;
-      --text-muted: #94a3b8;
-      --accent: #38bdf8;
-    }
-    * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Segoe UI', system-ui, sans-serif; }
-    body { background-color: var(--bg-dark); color: var(--text-main); line-height: 1.6; }
-    header { display: flex; justify-content: space-between; align-items: center; padding: 1.5rem 5%; border-bottom: 1px solid rgba(255,255,255,0.1); }
-    .logo { font-size: 1.5rem; font-weight: 700; color: var(--accent); letter-spacing: 0.5px; }
-    nav a { color: var(--text-muted); text-decoration: none; margin-left: 1.5rem; transition: color 0.2s; }
-    nav a:hover { color: var(--text-main); }
-    .hero { min-height: 70vh; display: flex; flex-direction: column; justify-content: center; align-items: center; text-align: center; padding: 2rem 5%; }
-    .hero h1 { font-size: 3rem; margin-bottom: 1rem; background: linear-gradient(135deg, #fff, var(--accent)); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
-    .hero p { max-width: 600px; color: var(--text-muted); font-size: 1.2rem; margin-bottom: 2rem; }
-    .btn-cta { background-color: var(--primary); color: #fff; padding: 0.8rem 1.8rem; border-radius: 8px; text-decoration: none; font-weight: 600; transition: background-color 0.2s; }
-    .btn-cta:hover { background-color: var(--primary-hover); }
-    .features { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 2rem; padding: 4rem 5%; }
-    .feature-card { background-color: var(--card-bg); padding: 2rem; border-radius: 12px; border: 1px solid rgba(255,255,255,0.05); }
-    .feature-card h3 { color: var(--accent); margin-bottom: 0.8rem; }
-    footer { text-align: center; padding: 2rem 5%; border-top: 1px solid rgba(255,255,255,0.05); color: var(--text-muted); font-size: 0.9rem; }
-  </style>
-</head>
-<body>
-  <header>
-    <div class="logo">Meridian Horizon</div>
-    <nav>
-      <a href="#features">Giải pháp</a>
-      <a href="#about">Về chúng tôi</a>
-      <a href="#contact">Liên hệ</a>
-    </nav>
-  </header>
-
-  <main>
-    <section class="hero">
-      <h1>Chuyển đổi số cùng Meridian Horizon</h1>
-      <p>Nền tảng kiến tạo giá trị công nghệ, tối ưu quy trình vận hành và chuẩn hóa quản trị Agile Scrum chuẩn quốc tế.</p>
-      <a href="#features" class="btn-cta">Khám phá giải pháp</a>
-    </section>
-
-    <section id="features" class="features">
-      <div class="feature-card">
-        <h3>🚀 Quy trình Gitflow Chuẩn</h3>
-        <p>Phân tách 3 môi trường phát triển (Dev, Staging, Prod) minh bạch, đảm bảo an toàn tuyệt đối cho hệ sinh thái.</p>
-      </div>
-      <div class="feature-card">
-        <h3>📊 Quản trị Sprint Agile</h3>
-        <p>Định nghĩa DoR và DoD nghiêm ngặt, truy vết 100% commit liên kết với Issue ID nghiệp vụ.</p>
-      </div>
-      <div class="feature-card">
-        <h3>⚡ Phản ứng sự cố Hotfix</h3>
-        <p>Cơ chế vá lỗi khẩn cấp trực tiếp từ Prod và đồng bộ ngược tức thì về Staging & Dev.</p>
-      </div>
-    </section>
-  </main>
-
-  <footer>
-    <p>&copy; 2026 Meridian Horizon. All rights reserved.</p>
-  </footer>
-</body>
+<html lang="vi" class="dark">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Meridian Horizon | AI Video Dubbing & Translation Studio</title>
+    <meta name="description" content="Nền tảng biên dịch và lồng tiếng video AI chuyên nghiệp theo chuẩn doanh nghiệp." />
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+  </head>
+  <body class="bg-[#0b0f19] text-gray-100 antialiased selection:bg-purple-500 selection:text-white overflow-hidden">
+    <div id="root"></div>
+    <script type="module" src="/src/main.jsx"></script>
+  </body>
 </html>
