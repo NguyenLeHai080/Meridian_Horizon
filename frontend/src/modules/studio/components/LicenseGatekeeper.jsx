@@ -108,8 +108,12 @@ export const LicenseGatekeeper = ({ onActivated, onClose }) => {
 
       localStorage.setItem('peipei_license', JSON.stringify(activationPayload));
 
-      // Gọi Python backend resize cửa sổ lên 1340x840
-      if (window.pywebview && window.pywebview.api) {
+      // Gửi tín hiệu sang Electron hoặc PyWebView để phóng to cửa sổ lên 1340x840
+      if (window.electronAPI && window.electronAPI.activateSuccess) {
+        try {
+          window.electronAPI.activateSuccess(activationPayload);
+        } catch (e) {}
+      } else if (window.pywebview && window.pywebview.api) {
         try {
           window.pywebview.api.activate_success(activationPayload);
         } catch (e) {}
@@ -134,24 +138,19 @@ export const LicenseGatekeeper = ({ onActivated, onClose }) => {
   };
 
   return (
-    <div className="relative overflow-hidden w-full h-full min-h-screen bg-[#0b0f17] text-gray-100 flex flex-col justify-between font-sans select-none">
-      {/* Background Cyber Ambient Glows */}
-      <div className="absolute -top-20 -right-20 w-64 h-64 bg-emerald-500/10 rounded-full blur-3xl pointer-events-none" />
-      <div className="absolute -bottom-20 -left-20 w-64 h-64 bg-cyan-500/10 rounded-full blur-3xl pointer-events-none" />
-      <div 
-        className="absolute inset-0 opacity-20 pointer-events-none"
-        style={{
-          backgroundImage: 'radial-gradient(rgba(16, 185, 129, 0.15) 1px, transparent 1px)',
-          backgroundSize: '20px 20px',
-        }}
-      />
+    <div className="relative overflow-hidden w-full h-full min-h-screen bg-[#0b0f17] text-gray-100 flex flex-col justify-between font-sans select-none transform-gpu">
+      {/* Lightweight Hardware-Accelerated Cyber Background (Triệt tiêu độ trễ/lag) */}
+      <div className="absolute inset-0 bg-gradient-to-b from-[#0e1728] via-[#0b0f17] to-[#06090f] pointer-events-none" />
+      <div className="absolute top-0 right-0 w-80 h-80 bg-gradient-to-bl from-emerald-500/15 via-emerald-500/5 to-transparent pointer-events-none" />
+      <div className="absolute bottom-0 left-0 w-80 h-80 bg-gradient-to-tr from-cyan-500/15 via-cyan-500/5 to-transparent pointer-events-none" />
 
       {/* 1. Header: Cyber Workstation Identity (Đồng bộ chuẩn PeiPei Dub Studio) */}
-      <div className="relative z-10 px-6 pt-6 pb-4 border-b border-emerald-500/20 bg-gradient-to-b from-[#0f172a]/90 to-[#0b0f17]/90 flex-shrink-0">
+      <div className="relative z-10 px-6 pt-6 pb-4 border-b border-emerald-500/20 bg-[#0f172a]/70 backdrop-blur-sm flex-shrink-0">
         <div className="flex items-center gap-3.5">
           {/* Glowing Avatar */}
-          <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-emerald-500/20 via-[#0d1627] to-cyan-500/20 border border-emerald-400/40 flex items-center justify-center shadow-[0_0_20px_rgba(16,185,129,0.25)] relative flex-shrink-0">
-            <span className="text-2xl">🐼</span>
+          <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-emerald-500/20 via-[#0d1627] to-cyan-500/20 border border-emerald-400/40 flex items-center justify-center shadow-[0_0_15px_rgba(16,185,129,0.2)] relative flex-shrink-0 overflow-hidden">
+            <img src="/icon.png" alt="PeiPei Logo" className="w-10 h-10 object-contain" onError={(e) => { e.target.style.display = 'none'; }} />
+            <span className="text-2xl pointer-events-none absolute">🐼</span>
             <div className="absolute -top-1 -right-1 w-4 h-4 rounded-full bg-emerald-400 text-gray-950 flex items-center justify-center shadow-[0_0_8px_#34d399]">
               <Headphones size={9} strokeWidth={3} />
             </div>

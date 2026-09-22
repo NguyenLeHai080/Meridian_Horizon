@@ -5,6 +5,9 @@ frontend/node_modules/
 # Production builds
 dist/
 dist_client/
+dist_electron/
+electron/node_modules/
+electron/dist/
 build/
 *.spec
 frontend/dist/

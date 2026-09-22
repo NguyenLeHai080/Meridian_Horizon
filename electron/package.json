@@ -1,0 +1,14 @@
+{
+  "name": "peipei-dub-desktop",
+  "version": "1.5.73",
+  "description": "PeiPei Dub Studio 1.5.73 Enterprise Desktop",
+  "main": "main.cjs",
+  "scripts": {
+    "start": "electron .",
+    "pack": "electron-packager . \"PeiPei Dub Studio\" --platform=win32 --arch=x64 --icon=../resources/icon.ico --out=../dist_electron --overwrite"
+  },
+  "devDependencies": {
+    "@electron/packager": "^20.3.0",
+    "electron": "^44.4.3"
+  }
+}
