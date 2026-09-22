@@ -8,6 +8,10 @@ from app.core.response import APIResponse
 from app.modules.admin.schemas.admin_schema import (
     AdminStatsResponse,
     CreateLicenseRequest,
+    RenewLicenseRequest,
+    UpdateLicenseRequest,
+    VerifyLicenseRequest,
+    VerifyLicenseResponse,
     ToggleUserStatusRequest,
     ToolLicenseDTO,
     UpdateUserCreditsRequest,
@@ -19,9 +23,7 @@ from app.modules.auth.schemas.auth_schema import UserProfileResponse
 
 router = APIRouter(prefix="/admin", tags=["Admin Portal & Tool Management"])
 
-# Dependency kiểm tra quyền Quản trị viên
 def require_admin(current_user: UserProfileResponse = Depends(get_current_user)):
-    # Trong môi trường dev, cho phép user hoặc kiểm tra role admin
     return current_user
 
 @router.get("/stats", response_model=APIResponse[AdminStatsResponse])
@@ -29,7 +31,6 @@ async def get_stats(
     admin: UserProfileResponse = Depends(require_admin),
     session: AsyncSession = Depends(get_db)
 ):
-    """Thống kê tổng quan hệ sinh thái Studio Tool: users, credits, gpu, tasks"""
     stats = await AdminService.get_stats(session)
     return APIResponse.ok(data=stats, message="Lấy thống kê hệ thống thành công.")
 
@@ -40,7 +41,6 @@ async def list_users(
     admin: UserProfileResponse = Depends(require_admin),
     session: AsyncSession = Depends(get_db)
 ):
-    """Danh sách toàn bộ người dùng sử dụng tool với phân trang"""
     params = PageParams(page=page, page_size=page_size)
     paged_users = await AdminService.list_users(session, params)
     return APIResponse.ok(data=paged_users, message="Tải danh sách người dùng thành công.")
@@ -52,7 +52,6 @@ async def update_credits(
     admin: UserProfileResponse = Depends(require_admin),
     session: AsyncSession = Depends(get_db)
 ):
-    """Admin nạp thêm hoặc trừ credit của người dùng"""
     updated_user = await AdminService.update_user_credits(session, user_id, request.amount)
     return APIResponse.ok(data=updated_user, message=f"Đã cập nhật credit cho user #{user_id}!")
 
@@ -63,9 +62,10 @@ async def toggle_status(
     admin: UserProfileResponse = Depends(require_admin),
     session: AsyncSession = Depends(get_db)
 ):
-    """Khóa hoặc mở khóa tài khoản người dùng"""
     updated_user = await AdminService.toggle_user_status(session, user_id, request.is_active)
     return APIResponse.ok(data=updated_user, message=f"Đã cập nhật trạng thái tài khoản #{user_id}!")
+
+# === QUẢN LÝ BẢN QUYỀN VÀ MÃ MÁY HWID (FULL CRUD) ===
 
 @router.get("/licenses", response_model=APIResponse[List[ToolLicenseDTO]])
 async def list_licenses(
@@ -85,3 +85,55 @@ async def create_license(
     """Cấp phát mã bản quyền mới cho tool (HWID Binding)"""
     new_lic = await AdminService.create_license(session, request)
     return APIResponse.ok(data=new_lic, message="Cấp bản quyền thành công!", status_code=201)
+
+@router.put("/licenses/{license_id}/renew", response_model=APIResponse[ToolLicenseDTO])
+async def renew_license(
+    license_id: int,
+    request: RenewLicenseRequest,
+    admin: UserProfileResponse = Depends(require_admin),
+    session: AsyncSession = Depends(get_db)
+):
+    """Gia hạn thời gian sử dụng bản quyền (+30d, +90d, +365d, Vĩnh viễn)"""
+    renewed = await AdminService.renew_license(session, license_id, request)
+    return APIResponse.ok(data=renewed, message="Gia hạn bản quyền thành công!")
+
+@router.put("/licenses/{license_id}/toggle-lock", response_model=APIResponse[ToolLicenseDTO])
+async def toggle_lock_license(
+    license_id: int,
+    admin: UserProfileResponse = Depends(require_admin),
+    session: AsyncSession = Depends(get_db)
+):
+    """Tạm khóa hoặc mở khóa thiết bị khách"""
+    updated = await AdminService.toggle_lock_license(session, license_id)
+    state_str = "đã bị TẠM KHÓA" if updated.is_locked else "đã được MỞ KHÓA"
+    return APIResponse.ok(data=updated, message=f"Thiết bị {state_str} thành công!")
+
+@router.put("/licenses/{license_id}", response_model=APIResponse[ToolLicenseDTO])
+async def update_license(
+    license_id: int,
+    request: UpdateLicenseRequest,
+    admin: UserProfileResponse = Depends(require_admin),
+    session: AsyncSession = Depends(get_db)
+):
+    """Chỉnh sửa thông tin bản quyền và thiết bị"""
+    updated = await AdminService.update_license(session, license_id, request)
+    return APIResponse.ok(data=updated, message="Cập nhật thông tin bản quyền thành công!")
+
+@router.delete("/licenses/{license_id}", response_model=APIResponse[bool])
+async def delete_license(
+    license_id: int,
+    admin: UserProfileResponse = Depends(require_admin),
+    session: AsyncSession = Depends(get_db)
+):
+    """Thu hồi và xóa bỏ mã bản quyền khỏi hệ thống"""
+    await AdminService.delete_license(session, license_id)
+    return APIResponse.ok(data=True, message="Đã xóa bản quyền thành công!")
+
+@router.post("/licenses/verify", response_model=APIResponse[VerifyLicenseResponse])
+async def verify_license_endpoint(
+    request: VerifyLicenseRequest,
+    session: AsyncSession = Depends(get_db)
+):
+    """API xác thực bản quyền trực tuyến dành cho Tool Desktop (Không yêu cầu JWT)"""
+    result = await AdminService.verify_license(session, request)
+    return APIResponse.ok(data=result, message=result.message)
