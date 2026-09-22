@@ -39,7 +39,7 @@ class StudioErrorBoundary extends React.Component {
   }
 }
 
-export const StudioPage = () => {
+const StudioPageContent = () => {
   const navigate = useNavigate();
   const { t, i18n } = useTranslation();
   const { user, logout } = useAuthStore();
@@ -77,6 +77,9 @@ export const StudioPage = () => {
   const [hwid] = useState(licenseInfo?.machine_id || localStorage.getItem('peipei_hwid') || 'PC-WIN-510A-6CD39D');
   const [isVerifying, setIsVerifying] = useState(false);
   const [verifyMessage, setVerifyMessage] = useState(null);
+
+  // Gói nạp credit mẫu (Khai báo hook ở đầu component tuân thủ tuyệt đối React Rules of Hooks)
+  const [selectedPackage, setSelectedPackage] = useState('pack_50k');
 
   const handleVerifyLicense = async () => {
     setIsVerifying(true);
@@ -125,12 +128,8 @@ export const StudioPage = () => {
     );
   }
 
-  // Gói nạp credit mẫu
-  const [selectedPackage, setSelectedPackage] = useState('pack_50k');
-
   return (
-    <StudioErrorBoundary>
-      <div className="flex h-screen w-screen bg-[#070a12] text-gray-100 overflow-hidden font-sans relative">
+    <div className="flex h-screen w-screen bg-[#070a12] text-gray-100 overflow-hidden font-sans relative">
       {/* 1. Left Sidebar */}
       <StudioSidebar
         onOpenCreditModal={() => setCreditModalOpen(true)}
@@ -470,8 +469,13 @@ export const StudioPage = () => {
         </div>
       </Modal>
     </div>
-    </StudioErrorBoundary>
   );
 };
+
+export const StudioPage = () => (
+  <StudioErrorBoundary>
+    <StudioPageContent />
+  </StudioErrorBoundary>
+);
 
 export default StudioPage;
