@@ -12,12 +12,19 @@ thông qua Microsoft Edge Chromium WebView2 engine, mang lại trải nghiệm p
 
 import os
 import sys
+import io
 import time
 import socket
 import threading
 import http.server
 import socketserver
 import subprocess
+
+# Khắc phục triệt để lỗi PyInstaller --noconsole trên Windows (sys.stdout/stderr là None)
+if getattr(sys, 'stdout', None) is None:
+    sys.stdout = io.StringIO()
+if getattr(sys, 'stderr', None) is None:
+    sys.stderr = io.StringIO()
 
 APP_TITLE = "PeiPei Dub 1.5.73 - Dịch & lồng tiếng video"
 VERSION = "1.5.73"
@@ -33,14 +40,21 @@ def get_dist_directory():
     # 1. Nếu đang chạy trong môi trường PyInstaller frozen
     if getattr(sys, 'frozen', False):
         base_dir = getattr(sys, '_MEIPASS', os.path.dirname(sys.executable))
-        c1 = os.path.join(base_dir, 'frontend', 'dist')
-        c2 = os.path.join(base_dir, 'dist')
-        if os.path.exists(os.path.join(c1, 'index.html')):
-            return c1
-        if os.path.exists(os.path.join(c2, 'index.html')):
-            return c2
-        if os.path.exists(os.path.join(base_dir, 'index.html')):
-            return base_dir
+        candidates = [
+            os.path.join(base_dir, 'frontend', 'dist'),
+            os.path.join(base_dir, 'dist'),
+            base_dir,
+            os.path.join(os.path.dirname(sys.executable), 'frontend', 'dist'),
+            os.path.join(os.path.dirname(sys.executable), 'dist'),
+        ]
+        for c in candidates:
+            if os.path.exists(os.path.join(c, 'index.html')):
+                return c
+        
+        # Tìm kiếm đệ quy nếu thư mục nằm ở cấp khác
+        for root, dirs, files in os.walk(base_dir):
+            if 'index.html' in files:
+                return root
 
     # 2. Môi trường phát triển cục bộ
     root_dir = os.path.dirname(os.path.abspath(__file__))
@@ -79,6 +93,13 @@ def start_spa_server(dist_path, port):
     return server
 
 def main():
+    log_file = os.path.join(os.environ.get('TEMP', os.path.dirname(os.path.abspath(__file__))), 'peipei_client.log')
+    try:
+        with open(log_file, 'a', encoding='utf-8') as f:
+            f.write(f"\n====================\nMain entry at {time.strftime('%Y-%m-%d %H:%M:%S')}\nExecutable: {sys.executable}\nFrozen: {getattr(sys, 'frozen', False)}\nMEIPASS: {getattr(sys, '_MEIPASS', 'None')}\n")
+    except Exception:
+        pass
+
     dist_dir = get_dist_directory()
     port = find_free_port()
 
@@ -86,16 +107,43 @@ def main():
     if dist_dir and os.path.exists(dist_dir):
         try:
             server = start_spa_server(dist_dir, port)
-        except Exception:
-            pass
+        except Exception as se:
+            try:
+                with open(log_file, 'a', encoding='utf-8') as f:
+                    f.write(f"Error starting server: {se}\n")
+            except Exception:
+                pass
 
     url = f"http://127.0.0.1:{port}/tool"
+
+    log_file = os.path.join(os.environ.get('TEMP', os.path.dirname(os.path.abspath(__file__))), 'peipei_client.log')
+    with open(log_file, 'a', encoding='utf-8') as f:
+        f.write(f"\n--- KHỞI CHẠY {time.strftime('%Y-%m-%d %H:%M:%S')} ---\n")
+        f.write(f"Frozen: {getattr(sys, 'frozen', False)}\n")
+        f.write(f"Dist dir: {dist_dir}\n")
+        f.write(f"Port: {port}\n")
+        f.write(f"URL: {url}\n")
+
+    # Cấu hình thư mục lưu trữ dữ liệu WebView2 an toàn (tránh lỗi quyền ghi Program Files)
+    webview_data_dir = os.path.join(os.environ.get('LOCALAPPDATA', os.environ.get('TEMP', '.')), 'PeiPeiDub', 'WebView2Data')
+    try:
+        os.makedirs(webview_data_dir, exist_ok=True)
+    except Exception:
+        pass
 
     # Thử khởi chạy với PyWebView (Microsoft Edge WebView2 Engine)
     webview_success = False
     try:
         import webview
-        # Tạo cửa sổ Desktop Ứng dụng hiện đại
+        try:
+            webview.settings['USER_DATA_FOLDER'] = webview_data_dir
+        except Exception:
+            pass
+
+        with open(log_file, 'a', encoding='utf-8') as f:
+            f.write(f"Webview loaded from: {getattr(webview, '__file__', 'unknown')}\n")
+
+        # Tạo cửa sổ Desktop Ứng dụng chuẩn Windows
         window = webview.create_window(
             title=APP_TITLE,
             url=url,
@@ -103,12 +151,20 @@ def main():
             height=840,
             min_size=(1040, 680),
             background_color="#070a12",
-            easy_drag=True
+            focus=True
         )
+        with open(log_file, 'a', encoding='utf-8') as f:
+            f.write("Window created successfully, calling webview.start()...\n")
         webview.start(debug=False)
         webview_success = True
+        with open(log_file, 'a', encoding='utf-8') as f:
+            f.write("webview.start() finished normally\n")
     except Exception as exc:
         webview_success = False
+        with open(log_file, 'a', encoding='utf-8') as f:
+            f.write(f"ERROR in pywebview: {exc}\n")
+            import traceback
+            traceback.print_exc(file=f)
 
     # Nếu PyWebView không khả dụng (môi trường không có WebView2)
     if not webview_success:
@@ -129,4 +185,14 @@ def main():
             pass
 
 if __name__ == "__main__":
-    main()
+    try:
+        main()
+    except Exception as e:
+        log_file = os.path.join(os.environ.get('TEMP', os.path.dirname(os.path.abspath(__file__))), 'peipei_client.log')
+        try:
+            with open(log_file, 'a', encoding='utf-8') as f:
+                f.write(f"\nCRITICAL TOP-LEVEL EXCEPTION: {e}\n")
+                import traceback
+                traceback.print_exc(file=f)
+        except Exception:
+            pass

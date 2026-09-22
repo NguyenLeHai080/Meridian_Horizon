@@ -20,7 +20,11 @@ from tkinter import ttk, messagebox, filedialog
 APP_NAME = "PeiPeiDub Studio"
 APP_DISPLAY_NAME = "PeiPei Dub Studio"
 APP_VERSION = "1.5.73"
-DEFAULT_INSTALL_DIR = os.path.join(os.environ.get("ProgramFiles", "C:\\Program Files"), APP_NAME)
+DEFAULT_INSTALL_DIR = os.path.join(
+    os.environ.get("LOCALAPPDATA", os.path.join(os.environ.get("USERPROFILE", "C:\\"), "AppData", "Local")),
+    "Programs",
+    APP_NAME
+)
 REQUIRED_SPACE_MB = 65.0
 
 def get_bundle_dir():
