@@ -1,0 +1,13 @@
+# <type>(<scope>): <mô tả ngắn gọn dạng mệnh lệnh> #<issue_id>
+# -------------------------------------------------------------
+# Các tiền tố hợp lệ:
+#   feat:     Tính năng mới (VD: feat(auth): add google login #MH-101)
+#   fix:      Sửa lỗi (VD: fix(cart): resolve price calculation bug #MH-102)
+#   refactor: Tối ưu code không thay đổi tính năng bên ngoài
+#   vendor:   Cập nhật gói bên ngoài/docker (VD: vendor(docker): update redis to latest)
+#   chore:    Các việc phụ trợ (build, cấu hình ci/cd, v.v.)
+#   docs:     Cập nhật tài liệu
+#   test:     Thêm/sửa unit tests
+# -------------------------------------------------------------
+# Giải thích chi tiết lý do và sự thay đổi (nếu có):
+
