@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { ShieldCheck, Plus, CreditCard, Tv, LogOut } from 'lucide-react';
+import { ShieldCheck, Plus, CreditCard, Tv, LogOut, Download } from 'lucide-react';
 import { Modal } from '@/shared/components/modal/Modal';
 import { Button } from '@/shared/components/ui/Button';
 import { Input } from '@/shared/components/ui/Input';
@@ -56,11 +56,11 @@ export const AdminDashboardPage = () => {
 
           <div className="flex items-center gap-4">
             <button
-              onClick={() => navigate('/app/studio')}
-              className="flex items-center gap-1.5 px-3 py-1 bg-purple-600/30 hover:bg-purple-600/50 text-purple-200 border border-purple-500/40 rounded text-xs font-semibold transition-all"
+              onClick={() => navigate('/admin/downloads')}
+              className="flex items-center gap-1.5 px-3 py-1 bg-cyan-600/30 hover:bg-cyan-600/50 text-cyan-200 border border-cyan-500/40 rounded text-xs font-semibold transition-all"
             >
-              <Tv size={13} />
-              <span>Mở Giao diện Tool</span>
+              <Download size={13} />
+              <span>Tải Tool Desktop (Win/macOS)</span>
             </button>
 
             <div className="flex items-center gap-2 border-l border-gray-800 pl-3">

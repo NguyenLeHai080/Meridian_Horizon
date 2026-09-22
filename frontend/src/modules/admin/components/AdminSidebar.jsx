@@ -63,14 +63,14 @@ export const AdminSidebar = () => {
         </nav>
       </div>
 
-      {/* Switch to Studio Tool Button */}
+      {/* Nút Tải Tool Desktop */}
       <div className="p-3 border-t border-gray-800 bg-[#080c16] space-y-2">
         <button
-          onClick={() => navigate('/app/studio')}
-          className="w-full flex items-center justify-center gap-2 py-2 px-3 rounded-lg bg-[#192237] hover:bg-[#222e49] text-purple-300 font-semibold text-xs border border-purple-500/40 transition-all shadow-md"
+          onClick={() => navigate('/admin/downloads')}
+          className="w-full flex items-center justify-center gap-2 py-2 px-3 rounded-lg bg-[#192237] hover:bg-[#222e49] text-cyan-300 font-semibold text-xs border border-cyan-500/40 transition-all shadow-md"
         >
-          <Tv size={14} />
-          <span>Vào Tool Lồng Tiếng</span>
+          <Download size={14} />
+          <span>Tải Tool Desktop Client</span>
         </button>
       </div>
     </aside>

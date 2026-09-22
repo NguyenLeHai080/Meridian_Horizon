@@ -41,14 +41,10 @@ export const AppRoutes = () => {
           }
         />
 
-        {/* Tuyến đường Studio Tool có tiền tố /app/... */}
+        {/* Cắt Web Studio trên web - Chuyển hướng sang trang Tải Tool Desktop */}
         <Route
           path="/app/studio"
-          element={
-            <PrivateRoute>
-              <StudioPage />
-            </PrivateRoute>
-          }
+          element={<Navigate to="/admin/downloads" replace />}
         />
 
         {/* Tuyến đường Quản trị có tiền tố /admin/... */}
