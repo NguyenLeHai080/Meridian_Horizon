@@ -69,17 +69,17 @@ export const AdminToolDownloadPage = () => {
 
                 <h3 className="text-base font-bold text-gray-100">Bản Cài Đặt Windows (.EXE)</h3>
                 <p className="text-xs text-gray-400 leading-relaxed">
-                  Trình cài đặt tự động nhận diện phần cứng GPU NVIDIA và cài đặt runtime CUDA / Torch tăng tốc.
+                  Trình cài đặt Setup Wizard hỗ trợ chọn ổ đĩa tùy ý (C:, D:, E:...), nhúng sẵn ứng dụng 64-Bit độc lập (chuẩn Segoe UI, không lỗi font '?').
                 </p>
 
                 <div className="p-2.5 bg-[#080c16] rounded-lg border border-gray-800 space-y-1 text-xs text-gray-300">
                   <div className="flex items-center gap-1.5">
                     <CheckCircle2 size={12} className="text-emerald-400" />
-                    <span className="text-[11px]">Tệp: <code>PeiPeiDub-Setup-v1.5.73.exe</code> (11.6 MB)</span>
+                    <span className="text-[11px]">Tệp: <code>PeiPeiDub-Setup-v1.5.73.exe</code> (21.7 MB)</span>
                   </div>
                   <div className="flex items-center gap-1.5">
                     <Cpu size={12} className="text-blue-400" />
-                    <span className="text-[11px]">Định dạng: Native Windows x64 PE (Chạy trực tiếp)</span>
+                    <span className="text-[11px]">Định dạng: Native Windows x64 PE (Tùy chọn ổ C, D, E)</span>
                   </div>
                 </div>
               </div>

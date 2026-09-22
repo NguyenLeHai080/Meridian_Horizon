@@ -1,7 +1,6 @@
 import React from 'react';
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { LoginPage } from '@/modules/auth/pages/LoginPage';
-import { StudioPage } from '@/modules/studio/pages/StudioPage';
 import { AdminDashboardPage } from '@/modules/admin/pages/AdminDashboardPage';
 import { AdminUsersPage } from '@/modules/admin/pages/AdminUsersPage';
 import { AdminLicensesPage } from '@/modules/admin/pages/AdminLicensesPage';
