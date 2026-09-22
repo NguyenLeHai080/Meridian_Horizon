@@ -1,16 +1,25 @@
-import React from 'react';
-import { Play, Eye, Plus, Check, ChevronRight, FolderOpen, X } from 'lucide-react';
+import React, { useRef } from 'react';
+import { Play, Square, Eye, Plus, Check, FolderOpen, X, Sparkles, Film, Layers } from 'lucide-react';
 import useStudioStore from '../store/studioStore';
 
 export const WorkflowStepBar = ({ onOpenSelectVideoModal }) => {
+  const fileInputRef = useRef(null);
+
   const {
     activeTab,
     setActiveTab,
     currentStep,
     setStep,
     videoFilename,
+    videoDuration,
+    videoDurationSeconds,
     isProcessing,
     startTranslation,
+    cancelTranslation,
+    setVideo,
+    setIsPlaying,
+    setCurrentTime,
+    addLog,
   } = useStudioStore();
 
   const steps = [
@@ -21,111 +30,219 @@ export const WorkflowStepBar = ({ onOpenSelectVideoModal }) => {
     { id: 5, label: '5. Xuất bản' },
   ];
 
+  // Xử lý mở hộp thoại chọn Video (Ưu tiên Electron Native File Dialog, Fallback Web Input)
+  const handleSelectVideo = async () => {
+    if (window.electronAPI && window.electronAPI.openFileDialog) {
+      try {
+        const res = await window.electronAPI.openFileDialog({
+          title: 'Chọn tệp video để biên dịch và lồng tiếng',
+          filters: [
+            { name: 'Video Files (*.mp4, *.mkv, *.avi, *.mov, *.webm, *.flv)', extensions: ['mp4', 'mkv', 'avi', 'mov', 'webm', 'flv', 'ts'] },
+            { name: 'All Files', extensions: ['*'] }
+          ]
+        });
+        if (res && !res.canceled && res.filePath) {
+          const sizeMB = (res.size / (1024 * 1024)).toFixed(1);
+          setVideo({
+            filename: res.fileName,
+            url: `http://127.0.0.1:${window.location.port || 61642}/${encodeURIComponent(res.fileName)}`, // hoặc file path
+            duration: '00:30',
+            durationSeconds: 30
+          });
+          addLog(`✓ Đã nạp thành công tệp: ${res.fileName} (${sizeMB} MB)`, 'success');
+          return;
+        }
+      } catch (e) {
+        console.error('Electron file dialog error:', e);
+      }
+    }
+
+    // Fallback mở Modal chọn video
+    onOpenSelectVideoModal();
+  };
+
+  // Fallback chọn từ thẻ input web
+  const handleNativeFileInputChange = (e) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      const url = URL.createObjectURL(file);
+      setVideo({
+        file,
+        url,
+        filename: file.name,
+        duration: '00:30',
+        durationSeconds: 30,
+      });
+      addLog(`✓ Đã nạp tệp video từ máy tính: ${file.name}`, 'success');
+    }
+  };
+
+  const handleClearVideo = () => {
+    setVideo({
+      file: null,
+      url: null,
+      filename: '',
+      duration: '00:00',
+      durationSeconds: 0,
+    });
+    addLog('Đã gỡ bỏ video hiện tại.', 'info');
+  };
+
+  const handlePreview = () => {
+    setCurrentTime(0);
+    setIsPlaying(true);
+    addLog('Đang phát đoạn xem trước video kèm phụ đề.', 'info');
+  };
+
   return (
     <div className="flex-shrink-0 bg-[#0a0e1a] border-b border-gray-800 select-none">
+      {/* Ẩn input file để fallback */}
+      <input
+        type="file"
+        ref={fileInputRef}
+        onChange={handleNativeFileInputChange}
+        accept="video/*"
+        className="hidden"
+      />
+
       {/* 1. TOP TABS: Dịch lồng tiếng video & Review Truyện Tranh */}
-      <div className="px-4 py-2 flex items-center gap-2 bg-[#070a12] border-b border-gray-800/80">
-        <button
-          onClick={() => setActiveTab('dubbing')}
-          className={`px-4 py-1.5 rounded-lg text-xs font-bold transition-all ${
-            activeTab === 'dubbing'
-              ? 'bg-[#7c3aed] text-white shadow-md shadow-purple-900/30'
-              : 'bg-[#161f33] text-gray-400 hover:text-white'
-          }`}
-        >
-          ☰ Dịch Lồng tiếng video
-        </button>
-        <button
-          onClick={() => setActiveTab('comics')}
-          className={`px-4 py-1.5 rounded-lg text-xs font-semibold transition-all ${
-            activeTab === 'comics'
-              ? 'bg-[#7c3aed] text-white shadow-md shadow-purple-900/30'
-              : 'bg-[#161f33] text-gray-400 hover:text-white'
-          }`}
-        >
-          ■ Review Truyện Tranh
-        </button>
+      <div className="px-4 py-2 flex items-center justify-between bg-[#070a12] border-b border-gray-800/80">
+        <div className="flex items-center gap-2">
+          <button
+            onClick={() => setActiveTab('dubbing')}
+            className={`flex items-center gap-1.5 px-4 py-1.5 rounded-lg text-xs font-bold transition-all cursor-pointer ${
+              activeTab === 'dubbing'
+                ? 'bg-gradient-to-r from-purple-600 to-indigo-600 text-white shadow-md shadow-purple-950/50'
+                : 'bg-[#12192b] text-gray-400 hover:text-white border border-gray-800'
+            }`}
+          >
+            <Film size={13} />
+            <span>Dịch Lồng tiếng video</span>
+          </button>
+          <button
+            onClick={() => setActiveTab('comics')}
+            className={`flex items-center gap-1.5 px-4 py-1.5 rounded-lg text-xs font-semibold transition-all cursor-pointer ${
+              activeTab === 'comics'
+                ? 'bg-gradient-to-r from-purple-600 to-indigo-600 text-white shadow-md shadow-purple-950/50'
+                : 'bg-[#12192b] text-gray-400 hover:text-white border border-gray-800'
+            }`}
+          >
+            <Layers size={13} />
+            <span>Review Truyện Tranh</span>
+          </button>
+        </div>
+
+        <div className="text-[11px] text-gray-400 flex items-center gap-2 font-mono">
+          <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
+          <span>CUDA ACCELERATED</span>
+        </div>
       </div>
 
       {/* 2. FILE SELECTOR BAR */}
-      <div className="px-4 py-2.5 bg-[#0e1424] flex items-center gap-2 border-b border-gray-800">
+      <div className="px-4 py-2 bg-[#0e1424] flex items-center gap-2.5 border-b border-gray-800">
         <button
-          onClick={onOpenSelectVideoModal}
-          className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-bold bg-[#d97706] hover:bg-[#b45309] text-white rounded-lg transition-colors shadow-sm cursor-pointer"
+          onClick={handleSelectVideo}
+          className="flex items-center gap-1.5 px-3 py-2 text-xs font-bold bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-400 hover:to-amber-500 text-gray-950 rounded-lg transition-all shadow-sm cursor-pointer active:scale-[0.99]"
+          title="Chọn tệp video từ máy tính"
         >
           <FolderOpen size={14} />
           <span>Chọn video</span>
         </button>
 
-        <div className="flex-1 relative flex items-center">
+        <div className="flex-1 relative flex items-center min-w-0">
           <input
             type="text"
             readOnly
-            value={videoFilename || 'ideast\\PeiPeiReup\\神性游戏_第23集|虚空神藏降世 林宣强势镇压神圣 众仙俯首称臣 这正是一场光看数词就发...一个不消_bilibili.mp4'}
-            className="w-full bg-[#162035] border border-gray-700/80 rounded-lg px-3 py-1.5 text-xs text-gray-200 font-sans focus:outline-none truncate"
+            value={videoFilename || 'Chưa chọn video...'}
+            placeholder="Nhấp 'Chọn video' để mở tệp từ máy tính"
+            className="w-full bg-[#141d30] border border-gray-700/80 rounded-lg pl-3 pr-8 py-1.5 text-xs text-cyan-300 font-sans focus:outline-none truncate"
           />
-          <button
-            onClick={() => {}}
-            className="absolute right-2 text-gray-400 hover:text-white"
-          >
-            <X size={14} />
-          </button>
+          {videoFilename && (
+            <button
+              onClick={handleClearVideo}
+              className="absolute right-2 text-gray-400 hover:text-rose-400 p-0.5 rounded cursor-pointer"
+              title="Xóa tệp đang chọn"
+            >
+              <X size={13} />
+            </button>
+          )}
         </div>
 
-        <span className="px-2.5 py-1 rounded bg-[#162035] text-gray-400 text-xs font-mono border border-gray-800">
-          30 giây
+        <span className="px-2.5 py-1.5 rounded-lg bg-[#141d30] text-gray-300 text-xs font-mono border border-gray-800 flex-shrink-0">
+          {videoDuration || '00:30'}
         </span>
 
         <button
-          onClick={() => alert('Đang phát đoạn xem trước 30 giây kèm phụ đề OCR.')}
-          className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-[#1a243a] hover:bg-[#22304d] text-gray-200 border border-gray-700 text-xs font-semibold transition-colors"
+          onClick={handlePreview}
+          className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-[#18233a] hover:bg-[#202e4d] text-gray-200 border border-gray-700 text-xs font-semibold transition-all cursor-pointer flex-shrink-0 active:scale-[0.99]"
         >
-          <Eye size={13} />
+          <Eye size={13} className="text-cyan-400" />
           <span>Xem trước</span>
         </button>
 
-        <button
-          onClick={startTranslation}
-          disabled={isProcessing}
-          className={`flex items-center gap-1.5 px-4 py-1.5 rounded-lg text-xs font-bold transition-all shadow-md shadow-purple-900/40 ${
-            isProcessing
-              ? 'bg-gray-700 text-gray-400 cursor-not-allowed'
-              : 'bg-[#7c3aed] hover:bg-[#6d28d9] text-white'
-          }`}
-        >
-          <Play size={13} />
-          <span>{isProcessing ? 'Đang dịch AI...' : 'Bắt đầu dịch'}</span>
-        </button>
+        {/* Nút Bắt đầu dịch / Dừng dịch */}
+        {isProcessing ? (
+          <button
+            onClick={cancelTranslation}
+            className="flex items-center gap-1.5 px-4 py-1.5 rounded-lg text-xs font-bold bg-rose-600 hover:bg-rose-500 text-white transition-all shadow-md shadow-rose-900/40 cursor-pointer flex-shrink-0 animate-pulse active:scale-[0.99]"
+            title="Dừng tiến trình hiện tại"
+          >
+            <Square size={13} fill="currentColor" />
+            <span>Dừng dịch</span>
+          </button>
+        ) : (
+          <button
+            onClick={startTranslation}
+            className="flex items-center gap-1.5 px-4 py-1.5 rounded-lg text-xs font-bold bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-500 hover:to-indigo-500 text-white transition-all shadow-md shadow-purple-900/40 cursor-pointer flex-shrink-0 active:scale-[0.99]"
+            title="Chạy quy trình 5 bước dịch và lồng tiếng"
+          >
+            <Play size={13} fill="currentColor" />
+            <span>Bắt đầu dịch</span>
+          </button>
+        )}
 
-        <button className="px-2.5 py-1.5 rounded-lg bg-[#1a243a] hover:bg-[#22304d] text-gray-300 border border-gray-700 text-xs font-semibold transition-colors">
+        <button
+          onClick={() => {
+            addLog(`Đã thêm [${videoFilename || 'video'}] vào hàng chờ dịch.`, 'info');
+          }}
+          className="px-2.5 py-1.5 rounded-lg bg-[#141d30] hover:bg-[#1d2a45] text-gray-300 border border-gray-700 text-xs font-semibold transition-colors cursor-pointer flex-shrink-0"
+        >
           + Hàng chờ
         </button>
 
-        <button className="px-2.5 py-1.5 rounded-lg bg-[#1a243a] hover:bg-[#22304d] text-gray-300 border border-gray-700 text-xs font-semibold transition-colors">
+        <button
+          onClick={onOpenSelectVideoModal}
+          className="px-2.5 py-1.5 rounded-lg bg-[#141d30] hover:bg-[#1d2a45] text-gray-300 border border-gray-700 text-xs font-semibold transition-colors cursor-pointer flex-shrink-0"
+        >
           + Nhiều video
         </button>
       </div>
 
-      {/* 3. 5-STEP PIPELINE GREEN BAR */}
-      <div className="px-4 py-2 bg-[#080c16] flex items-center justify-between gap-1">
-        {steps.map((s, idx) => {
-          const isDone = s.id <= currentStep;
+      {/* 3. 5-STEPS PROGRESS NAVIGATION BAR */}
+      <div className="px-4 py-2 bg-[#070b14] flex items-center justify-between gap-1 border-b border-gray-800/80 overflow-x-auto">
+        {steps.map((step, idx) => {
+          const isActive = currentStep === step.id;
+          const isCompleted = currentStep > step.id;
+
           return (
-            <React.Fragment key={s.id}>
-              <div
-                onClick={() => setStep(s.id)}
-                className={`flex-1 py-1.5 px-2 rounded-lg text-xs font-bold text-center transition-all cursor-pointer select-none ${
-                  isDone
-                    ? 'bg-[#059669] text-white shadow-sm'
-                    : 'bg-[#131d31] text-gray-400 hover:text-gray-200'
-                }`}
-              >
-                <span>{s.label}</span>
-              </div>
-              {idx < steps.length - 1 && (
-                <span className="text-gray-600 font-bold px-0.5 text-xs">➔</span>
-              )}
-            </React.Fragment>
+            <div
+              key={step.id}
+              onClick={() => setStep(step.id)}
+              className={`flex-1 min-w-[120px] py-1.5 px-2 rounded-lg text-xs font-semibold flex items-center justify-center gap-1.5 transition-all cursor-pointer text-center ${
+                isActive
+                  ? 'bg-gradient-to-r from-emerald-600 to-teal-600 text-gray-950 font-black shadow-[0_0_15px_rgba(16,185,129,0.35)]'
+                  : isCompleted
+                  ? 'bg-emerald-950/60 border border-emerald-500/30 text-emerald-300'
+                  : 'bg-[#101726] border border-gray-800 text-gray-400 hover:text-gray-200'
+              }`}
+            >
+              {isCompleted ? (
+                <Check size={12} strokeWidth={3} className="text-emerald-400" />
+              ) : isActive && isProcessing ? (
+                <span className="w-2 h-2 rounded-full bg-gray-950 animate-ping" />
+              ) : null}
+              <span className="truncate">{step.label}</span>
+            </div>
           );
         })}
       </div>

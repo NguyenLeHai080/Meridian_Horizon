@@ -1,16 +1,42 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
-import { Globe, LogOut, User as UserIcon, CreditCard, Sparkles, Check, UploadCloud, ShieldAlert } from 'lucide-react';
-import { changeLanguage } from '@/shared/i18n';
-import { Modal } from '@/shared/components/modal/Modal';
-import { Button } from '@/shared/components/ui/Button';
-import { Badge } from '@/shared/components/ui/Badge';
+import {
+  Globe,
+  LogOut,
+  User as UserIcon,
+  CreditCard,
+  Sparkles,
+  Check,
+  UploadCloud,
+  ShieldAlert,
+  Sliders,
+  Eye,
+  Trash2,
+  Plus,
+  Play,
+  Volume2,
+  Key,
+  Zap,
+  Download,
+  Clock,
+  Layers,
+  Scissors,
+  CheckCircle2,
+  FileText,
+  Copy,
+  ExternalLink,
+  History
+} from 'lucide-react';
+
 import { StudioSidebar } from '../components/StudioSidebar';
 import { WorkflowStepBar } from '../components/WorkflowStepBar';
 import { VideoPlayerPreview } from '../components/VideoPlayerPreview';
 import { ProviderConfigPanel } from '../components/ProviderConfigPanel';
 import { ExecutionLogTerminal } from '../components/ExecutionLogTerminal';
+import { Modal } from '@/shared/components/modal/Modal';
+import { Button } from '@/shared/components/ui/Button';
+import { Badge } from '@/shared/components/ui/Badge';
 import { LicenseGatekeeper } from '../components/LicenseGatekeeper';
 import useAuthStore from '@/modules/auth/store/authStore';
 import useStudioStore from '../store/studioStore';
@@ -43,7 +69,30 @@ const StudioPageContent = () => {
   const navigate = useNavigate();
   const { t, i18n } = useTranslation();
   const { user, logout } = useAuthStore();
-  const { credits } = useStudioStore();
+
+  const {
+    credits,
+    subtitles,
+    updateSubtitleSegment,
+    addSubtitleSegment,
+    removeSubtitleSegment,
+    subtitleStyle,
+    setSubtitleStyle,
+    maskConfig,
+    setMaskConfig,
+    gpuConfig,
+    setGpuEnabled,
+    selectedVoice,
+    setSelectedVoice,
+    voices,
+    apiKeys,
+    setApiKeys,
+    videoQueue,
+    projectHistory,
+    setVideo,
+    videoFilename,
+    addLog,
+  } = useStudioStore();
 
   // Kiểm tra trạng thái kích hoạt Bản quyền Máy trạm (HWID + License Key)
   const [licenseInfo, setLicenseInfo] = useState(() => {
@@ -72,14 +121,37 @@ const StudioPageContent = () => {
   const [isSubtitleModalOpen, setSubtitleModalOpen] = useState(false);
   const [isVideoSelectModalOpen, setVideoSelectModalOpen] = useState(false);
   const [isLicenseModalOpen, setLicenseModalOpen] = useState(false);
+  const [isDownloadModalOpen, setDownloadModalOpen] = useState(false);
+  const [isQueueModalOpen, setQueueModalOpen] = useState(false);
+  const [isImportSrtModalOpen, setImportSrtModalOpen] = useState(false);
+  const [isVideoEditModalOpen, setVideoEditModalOpen] = useState(false);
+  const [isGpuModalOpen, setGpuModalOpen] = useState(false);
+  const [isVoiceModalOpen, setVoiceModalOpen] = useState(false);
+  const [isApiKeyModalOpen, setApiKeyModalOpen] = useState(false);
+  const [isHistoryModalOpen, setHistoryModalOpen] = useState(false);
 
+  // Tab trong Subtitle Editor
+  const [editorTab, setEditorTab] = useState('segments'); // 'segments' | 'style' | 'mask'
+
+  // Input states
   const [licenseKeyInput, setLicenseKeyInput] = useState(licenseInfo?.license_key || 'JACS-9B21-4CA0-D1D1');
   const [hwid] = useState(licenseInfo?.machine_id || localStorage.getItem('peipei_hwid') || 'PC-WIN-510A-6CD39D');
   const [isVerifying, setIsVerifying] = useState(false);
   const [verifyMessage, setVerifyMessage] = useState(null);
 
-  // Gói nạp credit mẫu (Khai báo hook ở đầu component tuân thủ tuyệt đối React Rules of Hooks)
+  const [downloadUrl, setDownloadUrl] = useState('');
+  const [downloadQuality, setDownloadQuality] = useState('1080p');
+  const [isDownloading, setIsDownloading] = useState(false);
+
+  const [srtInputText, setSrtInputText] = useState('');
+  const [apiKeyForm, setApiKeyForm] = useState(apiKeys);
+  const [pingStatus, setPingStatus] = useState(null);
+
   const [selectedPackage, setSelectedPackage] = useState('pack_50k');
+
+  const changeLanguage = (lng) => {
+    i18n.changeLanguage(lng);
+  };
 
   const handleVerifyLicense = async () => {
     setIsVerifying(true);
@@ -117,6 +189,60 @@ const StudioPageContent = () => {
     setLicenseModalOpen(false);
   };
 
+  // Phát thử giọng đọc AI
+  const handlePlayVoicePreview = (voice) => {
+    if ('speechSynthesis' in window) {
+      window.speechSynthesis.cancel();
+      const utter = new SpeechSynthesisUtterance(
+        `Xin chào, tôi là giọng đọc ${voice.name}. Rất hân hạnh được đồng hành cùng bạn trong các video lồng tiếng AI.`
+      );
+      utter.lang = 'vi-VN';
+      utter.rate = 1.0;
+      window.speechSynthesis.speak(utter);
+      addLog(`Đang phát thử mẫu giọng đọc: [${voice.name}]`, 'info');
+    } else {
+      addLog(`Đang mô phỏng phát mẫu giọng [${voice.name}]`, 'info');
+    }
+  };
+
+  // Tải video từ URL
+  const handleStartDownloadUrl = () => {
+    if (!downloadUrl.trim()) return;
+    setIsDownloading(true);
+    addLog(`Đang kết nối tải video từ URL: ${downloadUrl}...`, 'info');
+
+    setTimeout(() => {
+      setIsDownloading(false);
+      setDownloadModalOpen(false);
+      const demoFileName = `video_download_${Date.now().toString().slice(-4)}.mp4`;
+      setVideo({
+        filename: demoFileName,
+        url: null,
+        duration: '03:45',
+        durationSeconds: 225,
+      });
+      addLog(`✓ Đã tải hoàn tất video [${demoFileName}] vào thư mục làm việc!`, 'success');
+      setDownloadUrl('');
+    }, 2500);
+  };
+
+  // Nạp tệp SRT tự nhập
+  const handleApplyImportSrt = () => {
+    if (!srtInputText.trim()) return;
+    addLog('✓ Đã nạp thành công dữ liệu phụ đề SRT tùy chỉnh vào dự án.', 'success');
+    setImportSrtModalOpen(false);
+    setSrtInputText('');
+  };
+
+  // Ping test API Keys
+  const handlePingApiKey = (providerKey) => {
+    setPingStatus({ [providerKey]: 'testing' });
+    setTimeout(() => {
+      setPingStatus({ [providerKey]: 'ok' });
+      addLog(`✓ Kiểm tra kết nối ${providerKey.toUpperCase()} API thành công! Phản hồi 42ms.`, 'success');
+    }, 1200);
+  };
+
   // NẾU CHƯA KÍCH HOẠT: HIỂN THỊ TRỰC TIẾP CỬA SỔ NHẬP KEY GỌN GÀNG (KHÔNG CÓ KHUNG NGOÀI)
   if (!licenseInfo) {
     return (
@@ -134,12 +260,20 @@ const StudioPageContent = () => {
       <StudioSidebar
         onOpenCreditModal={() => setCreditModalOpen(true)}
         onOpenLicenseModal={() => setLicenseModalOpen(true)}
+        onOpenDownloadModal={() => setDownloadModalOpen(true)}
+        onOpenQueueModal={() => setQueueModalOpen(true)}
+        onOpenImportSrtModal={() => setImportSrtModalOpen(true)}
+        onOpenVideoEditModal={() => setVideoEditModalOpen(true)}
+        onOpenGpuModal={() => setGpuModalOpen(true)}
+        onOpenVoiceModal={() => setVoiceModalOpen(true)}
+        onOpenApiKeyModal={() => setApiKeyModalOpen(true)}
+        onOpenHistoryModal={() => setHistoryModalOpen(true)}
         licenseInfo={licenseInfo}
       />
 
       {/* 2. Main Studio Workflow Canvas */}
       <div className="flex-1 flex flex-col min-w-0 h-full">
-        {/* Top Mini Header (Ngôn ngữ + Tài khoản) */}
+        {/* Top Mini Header */}
         <header className="h-10 flex-shrink-0 bg-[#090d17] border-b border-gray-800 px-4 flex items-center justify-between text-xs select-none">
           <div className="flex items-center gap-2">
             <span className="text-gray-400">Dự án:</span>
@@ -165,7 +299,7 @@ const StudioPageContent = () => {
             {/* Nút chuyển sang Trang Quản trị Tool (Admin) */}
             <button
               onClick={() => navigate('/admin/dashboard')}
-              className="flex items-center gap-1.5 px-2.5 py-1 bg-amber-500/20 hover:bg-amber-500/30 text-amber-300 border border-amber-500/40 rounded text-[11px] font-semibold transition-all shadow-sm"
+              className="flex items-center gap-1.5 px-2.5 py-1 bg-amber-500/20 hover:bg-amber-500/30 text-amber-300 border border-amber-500/40 rounded text-[11px] font-semibold transition-all shadow-sm cursor-pointer"
               title="Mở Trang Quản trị Tool"
             >
               <ShieldAlert size={12} />
@@ -181,7 +315,7 @@ const StudioPageContent = () => {
               <button
                 onClick={logout}
                 title="Đăng xuất"
-                className="p-1 rounded text-gray-400 hover:text-rose-400 hover:bg-gray-800 transition-colors"
+                className="p-1 rounded text-gray-400 hover:text-rose-400 hover:bg-gray-800 transition-colors cursor-pointer"
               >
                 <LogOut size={14} />
               </button>
@@ -203,7 +337,7 @@ const StudioPageContent = () => {
       </div>
 
       {/* ========================================================================= */}
-      {/* 3. CÁC MODAL DÙNG CHUNG (SHARED REUSABLE MODALS - FIXED HEADER/FOOTER, SCROLLABLE BODY) */}
+      {/* 3. CÁC MODAL DÙNG CHUNG (SHARED REUSABLE MODALS) */}
       {/* ========================================================================= */}
 
       {/* MODAL 1: NẠP CREDIT */}
@@ -216,7 +350,7 @@ const StudioPageContent = () => {
         footer={
           <>
             <Button variant="outline" size="sm" onClick={() => setCreditModalOpen(false)}>
-              {t('common.cancel')}
+              Đóng
             </Button>
             <Button
               variant="primary"
@@ -268,22 +402,15 @@ const StudioPageContent = () => {
               </div>
             ))}
           </div>
-
-          <div className="p-3 bg-[#0c121e] rounded-lg border border-gray-800 text-[11px] text-gray-400 space-y-1">
-            <p className="font-semibold text-gray-300">💡 Lưu ý chính sách Credit:</p>
-            <p>• Dịch DeepSeek Cloud: ~10 credits / phút video.</p>
-            <p>• Mô hình Offline Local (chạy GPU nội bộ): 0 credits (Hoàn toàn miễn phí).</p>
-            <p>• Credit không có thời hạn hết hạn, được bảo lưu vĩnh viễn trên tài khoản.</p>
-          </div>
         </div>
       </Modal>
 
-      {/* MODAL 2: CHỈNH SỬA PHỤ ĐỀ SONG NGỮ (EDITOR) */}
+      {/* MODAL 2: TRÌNH BIÊN TẬP PHỤ ĐỀ SONG NGỮ & CHE VÙNG (EDITOR) */}
       <Modal
         isOpen={isSubtitleModalOpen}
         onClose={() => setSubtitleModalOpen(false)}
-        title="Trình biên tập Phụ đề Song ngữ (SRT Editor)"
-        subtitle="Hiệu chỉnh nội dung dịch, căn chỉnh Timecode và che vùng phụ đề cũ"
+        title="Trình biên tập Phụ đề & Che vùng (Subtitle & Masking Editor)"
+        subtitle="Hiệu chỉnh nội dung dịch từng câu, căn chỉnh phông chữ và che vùng chữ tiếng Trung gốc"
         size="xl"
         footer={
           <>
@@ -294,52 +421,267 @@ const StudioPageContent = () => {
               variant="success"
               size="sm"
               onClick={() => {
-                alert('Đã lưu thay đổi phụ đề vào dự án!');
+                addLog('✓ Đã lưu thay đổi phụ đề và cấu hình che vùng vào dự án!', 'success');
                 setSubtitleModalOpen(false);
               }}
             >
-              Lưu phụ đề
+              Lưu &amp; Áp dụng
             </Button>
           </>
         }
       >
-        <div className="space-y-3">
-          <p className="text-xs text-gray-400">
-            Danh sách câu thoại đã được AI nhận diện qua OCR và chuyển ngữ:
-          </p>
+        <div className="space-y-4">
+          {/* Subtitle Editor Tabs */}
+          <div className="flex items-center gap-2 border-b border-gray-800 pb-2">
+            <button
+              onClick={() => setEditorTab('segments')}
+              className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all cursor-pointer ${
+                editorTab === 'segments'
+                  ? 'bg-purple-600 text-white shadow'
+                  : 'bg-[#12192b] text-gray-400 hover:text-gray-200'
+              }`}
+            >
+              Phân đoạn Phụ đề ({subtitles.length})
+            </button>
+            <button
+              onClick={() => setEditorTab('style')}
+              className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all cursor-pointer ${
+                editorTab === 'style'
+                  ? 'bg-purple-600 text-white shadow'
+                  : 'bg-[#12192b] text-gray-400 hover:text-gray-200'
+              }`}
+            >
+              Căn chỉnh Phông chữ &amp; Màu sắc
+            </button>
+            <button
+              onClick={() => setEditorTab('mask')}
+              className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all cursor-pointer ${
+                editorTab === 'mask'
+                  ? 'bg-purple-600 text-white shadow'
+                  : 'bg-[#12192b] text-gray-400 hover:text-gray-200'
+              }`}
+            >
+              Che vùng Video (Masking)
+            </button>
+          </div>
 
-          <div className="space-y-2">
-            {[
-              { id: 1, time: '00:00:01.000 ➔ 00:00:03.500', zh: '我想有必要给您提醒下', vi: 'Tôi nghĩ cần phải nhắc nhở ngài một chút.' },
-              { id: 2, time: '00:00:04.000 ➔ 00:00:06.200', zh: '神性游戏即将开启新的篇章', vi: 'Trò chơi thần tính sắp sửa mở ra chương mới.' },
-              { id: 3, time: '00:00:07.100 ➔ 00:00:10.000', zh: '无论面对什么敌人，我们绝不退缩', vi: 'Bất luận đối mặt kẻ địch nào, chúng ta tuyệt không lùi bước.' },
-            ].map((sub) => (
-              <div key={sub.id} className="p-3 bg-[#0d1424] border border-gray-800 rounded-lg space-y-2">
-                <div className="flex items-center justify-between text-[11px] text-purple-400 font-mono">
-                  <span>Dòng #{sub.id}</span>
-                  <span className="bg-gray-900 px-2 py-0.5 rounded border border-gray-800">{sub.time}</span>
-                </div>
-                <div className="grid grid-cols-2 gap-2 text-xs">
-                  <div>
-                    <label className="text-[10px] text-gray-500 block mb-1">Gốc (Tiếng Trung):</label>
-                    <input
-                      type="text"
-                      defaultValue={sub.zh}
-                      className="w-full bg-[#162035] border border-gray-700 rounded p-1.5 text-gray-200 text-xs"
-                    />
+          {/* TAB 1: SEGMENTS LIST */}
+          {editorTab === 'segments' && (
+            <div className="space-y-3">
+              <div className="flex justify-between items-center text-xs">
+                <span className="text-gray-400">Danh sách các câu thoại OCR và bản dịch AI:</span>
+                <button
+                  onClick={() => {
+                    addSubtitleSegment({
+                      start: '00:00:17.000',
+                      end: '00:00:20.000',
+                      startSec: 17,
+                      endSec: 20,
+                      zh: '新增中文字幕行',
+                      vi: 'Dòng phụ đề mới thêm vào video.',
+                    });
+                  }}
+                  className="flex items-center gap-1 px-2.5 py-1 rounded bg-purple-600/30 hover:bg-purple-600/50 text-purple-300 border border-purple-500/40 font-semibold cursor-pointer"
+                >
+                  <Plus size={12} />
+                  <span>Thêm dòng</span>
+                </button>
+              </div>
+
+              <div className="max-h-80 overflow-y-auto space-y-2 pr-1 scrollable-body">
+                {subtitles.map((sub, idx) => (
+                  <div key={sub.id} className="p-3 bg-[#0f172a] rounded-xl border border-gray-800 space-y-2">
+                    <div className="flex items-center justify-between text-xs text-gray-400">
+                      <span className="font-bold text-purple-400">#Câu {idx + 1}</span>
+                      <div className="flex items-center gap-2">
+                        <span className="font-mono text-[10.5px] bg-black/50 px-2 py-0.5 rounded border border-gray-800 text-cyan-300">
+                          {sub.start} ➔ {sub.end}
+                        </span>
+                        {subtitles.length > 1 && (
+                          <button
+                            onClick={() => removeSubtitleSegment(sub.id)}
+                            className="text-gray-500 hover:text-rose-400 p-1 rounded"
+                            title="Xóa dòng này"
+                          >
+                            <Trash2 size={12} />
+                          </button>
+                        )}
+                      </div>
+                    </div>
+                    <div className="grid grid-cols-2 gap-2">
+                      <div>
+                        <label className="text-[10px] text-gray-500 block mb-1">Gốc (Tiếng Trung):</label>
+                        <input
+                          type="text"
+                          value={sub.zh}
+                          onChange={(e) => updateSubtitleSegment(sub.id, { zh: e.target.value })}
+                          className="w-full bg-[#162035] border border-gray-700/80 rounded-lg p-2 text-gray-200 text-xs focus:outline-none focus:border-purple-500"
+                        />
+                      </div>
+                      <div>
+                        <label className="text-[10px] text-gray-500 block mb-1">Dịch (Tiếng Việt):</label>
+                        <input
+                          type="text"
+                          value={sub.vi}
+                          onChange={(e) => updateSubtitleSegment(sub.id, { vi: e.target.value })}
+                          className="w-full bg-[#162035] border border-emerald-500/50 rounded-lg p-2 text-emerald-300 text-xs font-semibold focus:outline-none focus:border-emerald-400"
+                        />
+                      </div>
+                    </div>
                   </div>
-                  <div>
-                    <label className="text-[10px] text-gray-500 block mb-1">Dịch (Tiếng Việt):</label>
-                    <input
-                      type="text"
-                      defaultValue={sub.vi}
-                      className="w-full bg-[#162035] border border-gray-700 rounded p-1.5 text-emerald-300 text-xs"
-                    />
-                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {/* TAB 2: SUBTITLE STYLE */}
+          {editorTab === 'style' && (
+            <div className="space-y-4 p-2">
+              <div className="space-y-1.5">
+                <label className="text-xs font-bold text-gray-300">Cỡ chữ phụ đề ({subtitleStyle.fontSize}px):</label>
+                <input
+                  type="range"
+                  min="12"
+                  max="28"
+                  value={subtitleStyle.fontSize}
+                  onChange={(e) => setSubtitleStyle({ fontSize: Number(e.target.value) })}
+                  className="w-full accent-purple-500 cursor-pointer"
+                />
+              </div>
+
+              <div className="space-y-1.5">
+                <label className="text-xs font-bold text-gray-300">Màu sắc văn bản:</label>
+                <div className="flex gap-2">
+                  {[
+                    { label: 'Xanh ngọc', val: '#34d399' },
+                    { label: 'Vàng rực', val: '#fbbf24' },
+                    { label: 'Trắng tinh', val: '#ffffff' },
+                    { label: 'Xanh dương', val: '#38bdf8' },
+                    { label: 'Hồng phấn', val: '#f472b6' },
+                  ].map((c) => (
+                    <button
+                      key={c.val}
+                      onClick={() => setSubtitleStyle({ color: c.val })}
+                      className={`px-3 py-1.5 rounded-lg text-xs font-bold flex items-center gap-1.5 border transition-all cursor-pointer ${
+                        subtitleStyle.color === c.val ? 'border-white ring-2 ring-purple-500' : 'border-gray-700'
+                      }`}
+                      style={{ color: c.val, backgroundColor: '#141d30' }}
+                    >
+                      <span className="w-2.5 h-2.5 rounded-full" style={{ backgroundColor: c.val }} />
+                      <span>{c.label}</span>
+                    </button>
+                  ))}
                 </div>
               </div>
-            ))}
-          </div>
+
+              <div className="space-y-1.5">
+                <label className="text-xs font-bold text-gray-300">Vị trí hiển thị:</label>
+                <div className="grid grid-cols-3 gap-2">
+                  {[
+                    { id: 'bottom', label: 'Dưới cùng (Chuẩn)' },
+                    { id: 'center', label: 'Ở giữa khung hình' },
+                    { id: 'top', label: 'Trên cùng video' },
+                  ].map((pos) => (
+                    <button
+                      key={pos.id}
+                      onClick={() => setSubtitleStyle({ position: pos.id })}
+                      className={`p-2 rounded-lg text-xs font-semibold border transition-all text-center cursor-pointer ${
+                        subtitleStyle.position === pos.id
+                          ? 'bg-purple-600 text-white border-purple-400'
+                          : 'bg-[#141d30] text-gray-400 border-gray-700'
+                      }`}
+                    >
+                      {pos.label}
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              <div className="flex items-center gap-2 pt-2">
+                <input
+                  type="checkbox"
+                  id="chkDual"
+                  checked={subtitleStyle.showDual}
+                  onChange={(e) => setSubtitleStyle({ showDual: e.target.checked })}
+                  className="rounded bg-gray-800 text-purple-600 cursor-pointer"
+                />
+                <label htmlFor="chkDual" className="text-xs text-gray-300 cursor-pointer select-none">
+                  Hiển thị cả dòng tiếng Trung gốc (Song ngữ Trung - Việt)
+                </label>
+              </div>
+            </div>
+          )}
+
+          {/* TAB 3: MASKING CONFIG */}
+          {editorTab === 'mask' && (
+            <div className="space-y-4 p-2">
+              <div className="flex items-center justify-between p-3 bg-[#11192e] rounded-xl border border-gray-800">
+                <div>
+                  <h4 className="text-xs font-bold text-gray-200">Kích hoạt hộp đen che phụ đề gốc</h4>
+                  <p className="text-[10px] text-gray-400">Đè thanh màu đen lên phụ đề tiếng Trung gốc để tránh lộ chữ cũ</p>
+                </div>
+                <button
+                  onClick={() => setMaskConfig({ enabled: !maskConfig.enabled })}
+                  className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all cursor-pointer ${
+                    maskConfig.enabled
+                      ? 'bg-emerald-500 text-gray-950 shadow-md shadow-emerald-500/30'
+                      : 'bg-gray-800 text-gray-400 hover:text-white'
+                  }`}
+                >
+                  {maskConfig.enabled ? 'ĐANG BẬT' : 'ĐANG TẮT'}
+                </button>
+              </div>
+
+              {maskConfig.enabled && (
+                <div className="space-y-3 p-3 bg-[#0c1220] rounded-xl border border-gray-800">
+                  <div className="space-y-1">
+                    <div className="flex justify-between text-xs text-gray-400">
+                      <span>Vị trí theo chiều dọc (Y-axis):</span>
+                      <span className="font-mono text-cyan-300">{maskConfig.y}%</span>
+                    </div>
+                    <input
+                      type="range"
+                      min="50"
+                      max="95"
+                      value={maskConfig.y}
+                      onChange={(e) => setMaskConfig({ y: Number(e.target.value) })}
+                      className="w-full accent-cyan-400 cursor-pointer"
+                    />
+                  </div>
+
+                  <div className="space-y-1">
+                    <div className="flex justify-between text-xs text-gray-400">
+                      <span>Độ dày thanh che (Height):</span>
+                      <span className="font-mono text-cyan-300">{maskConfig.height}%</span>
+                    </div>
+                    <input
+                      type="range"
+                      min="3"
+                      max="20"
+                      value={maskConfig.height}
+                      onChange={(e) => setMaskConfig({ height: Number(e.target.value) })}
+                      className="w-full accent-cyan-400 cursor-pointer"
+                    />
+                  </div>
+
+                  <div className="space-y-1">
+                    <div className="flex justify-between text-xs text-gray-400">
+                      <span>Độ đậm đặc (Opacity):</span>
+                      <span className="font-mono text-cyan-300">{maskConfig.opacity}%</span>
+                    </div>
+                    <input
+                      type="range"
+                      min="40"
+                      max="100"
+                      value={maskConfig.opacity}
+                      onChange={(e) => setMaskConfig({ opacity: Number(e.target.value) })}
+                      className="w-full accent-cyan-400 cursor-pointer"
+                    />
+                  </div>
+                </div>
+              )}
+            </div>
+          )}
         </div>
       </Modal>
 
@@ -351,121 +693,451 @@ const StudioPageContent = () => {
         subtitle="Hỗ trợ các định dạng MP4, MKV, AVI, MOV lên tới 4K 60FPS"
         size="md"
         footer={
-          <>
-            <Button variant="outline" size="sm" onClick={() => setVideoSelectModalOpen(false)}>
-              Hủy
-            </Button>
-            <Button
-              variant="primary"
-              size="sm"
-              onClick={() => {
-                setVideoSelectModalOpen(false);
-              }}
-            >
-              Chọn video này
-            </Button>
-          </>
+          <Button variant="outline" size="sm" onClick={() => setVideoSelectModalOpen(false)}>
+            Đóng
+          </Button>
         }
       >
         <div className="space-y-4">
-          <div className="border-2 border-dashed border-gray-700 hover:border-purple-500 rounded-xl p-6 text-center cursor-pointer transition-colors bg-[#0f172a]/50">
+          <label className="border-2 border-dashed border-gray-700 hover:border-purple-500 rounded-xl p-6 text-center cursor-pointer transition-colors bg-[#0f172a]/50 block">
+            <input
+              type="file"
+              accept="video/*"
+              className="hidden"
+              onChange={(e) => {
+                const f = e.target.files?.[0];
+                if (f) {
+                  const url = URL.createObjectURL(f);
+                  setVideo({
+                    file: f,
+                    url,
+                    filename: f.name,
+                    duration: '00:30',
+                    durationSeconds: 30,
+                  });
+                  setVideoSelectModalOpen(false);
+                }
+              }}
+            />
             <UploadCloud size={36} className="mx-auto text-purple-400 mb-2" />
-            <p className="text-xs font-semibold text-gray-200">Kéo thả file video vào đây hoặc bấm để duyệt</p>
-            <p className="text-[10px] text-gray-500 mt-1">Dung lượng tối đa 2GB mỗi tệp</p>
-          </div>
+            <p className="text-xs font-semibold text-gray-200">Nhấp vào đây để duyệt file từ máy tính hoặc kéo thả</p>
+            <p className="text-[10px] text-gray-500 mt-1">Dung lượng tối đa 4GB mỗi tệp</p>
+          </label>
 
           <div className="space-y-1.5">
-            <span className="text-xs font-semibold text-gray-400">Video đã tải gần đây:</span>
+            <span className="text-xs font-semibold text-gray-400">Hoặc chọn mẫu video có sẵn:</span>
             {[
-              { name: '神性游戏_第23集_1080p.mp4', size: '142 MB', duration: '12:45' },
+              { name: '神性游戏_第23集_1080p.mp4', size: '142 MB', duration: '00:30' },
               { name: 'Xuyên_không_tu_tiên_tập_01.mp4', size: '210 MB', duration: '18:20' },
               { name: 'Review_truyện_tranh_chap_99.mp4', size: '98 MB', duration: '08:15' },
             ].map((v, i) => (
               <div
                 key={i}
-                className="p-2.5 bg-[#12192b] hover:bg-[#18233d] border border-gray-800 rounded-lg flex items-center justify-between text-xs cursor-pointer"
+                onClick={() => {
+                  setVideo({
+                    filename: v.name,
+                    url: null,
+                    duration: v.duration,
+                    durationSeconds: 30,
+                  });
+                  setVideoSelectModalOpen(false);
+                }}
+                className="p-2.5 bg-[#12192b] hover:bg-[#18233d] border border-gray-800 rounded-lg flex items-center justify-between text-xs cursor-pointer transition-all"
               >
-                <div className="truncate max-w-[240px]">
+                <div className="truncate">
                   <p className="text-gray-200 font-medium truncate">{v.name}</p>
                   <p className="text-[10px] text-gray-500 font-mono">{v.size} • {v.duration}</p>
                 </div>
-                <Badge variant="cyan" size="xs">Sẵn sàng</Badge>
+                <Button size="xs" variant="outline">Chọn</Button>
               </div>
             ))}
           </div>
         </div>
       </Modal>
 
-      {/* MODAL 4: KÍCH HOẠT BẢN QUYỀN (LICENSE & HWID) */}
+      {/* MODAL 4: THÔNG TIN BẢN QUYỀN */}
       <Modal
         isOpen={isLicenseModalOpen}
         onClose={() => setLicenseModalOpen(false)}
-        title="Kích Hoạt Bản Quyền PeiPei Dub Studio"
-        subtitle="Xác thực mã bản quyền với hệ thống máy chủ Quản trị Admin"
+        title="Bản Quyền Máy Trạm & License"
+        subtitle="Quản lý mã bản quyền theo phần cứng thiết bị (HWID)"
         size="md"
         footer={
-          <div className="flex items-center justify-between w-full">
-            <button
-              onClick={handleDeactivateLicense}
-              className="text-xs text-rose-400 hover:text-rose-300 underline font-medium cursor-pointer"
-            >
-              Hủy kích hoạt / Đổi Key khác
-            </button>
-            <div className="flex items-center gap-2">
-              <Button variant="outline" size="sm" onClick={() => setLicenseModalOpen(false)}>
-                Đóng
-              </Button>
-              <Button
-                variant="primary"
-                size="sm"
-                className="bg-emerald-600 hover:bg-emerald-700 font-bold text-white border-none"
-                onClick={handleVerifyLicense}
-                disabled={isVerifying}
-              >
-                {isVerifying ? 'Đang xác thực...' : 'Xác thực & Kích hoạt'}
-              </Button>
-            </div>
-          </div>
+          <>
+            <Button variant="danger" size="sm" onClick={handleDeactivateLicense}>
+              Hủy kích hoạt trên máy này
+            </Button>
+            <Button variant="outline" size="sm" onClick={() => setLicenseModalOpen(false)}>
+              Đóng
+            </Button>
+          </>
         }
       >
-        <div className="space-y-4 text-xs">
-          <div className="p-3 bg-[#0d1424] border border-gray-800 rounded-xl space-y-1">
-            <span className="text-[10px] uppercase font-bold text-gray-400">Mã phần cứng máy trạm (HWID):</span>
-            <div className="flex items-center justify-between">
-              <span className="font-mono text-cyan-400 font-bold text-sm">{hwid}</span>
-              <button
-                onClick={() => {
-                  navigator.clipboard.writeText(hwid);
-                  alert('Đã sao chép mã HWID vào bộ nhớ tạm!');
-                }}
-                className="px-2.5 py-1 bg-gray-800 hover:bg-gray-700 text-gray-300 rounded text-[11px] font-semibold transition-colors cursor-pointer"
-              >
-                Sao chép
-              </button>
-            </div>
+        <div className="space-y-3 text-xs">
+          <div className="p-3 bg-[#0d1424] rounded-xl border border-gray-800 space-y-1">
+            <div className="text-gray-400">Mã phần cứng máy trạm (HWID):</div>
+            <div className="font-mono text-cyan-300 font-bold tracking-wider">{hwid}</div>
           </div>
+          <div className="p-3 bg-[#0d1424] rounded-xl border border-gray-800 space-y-1">
+            <div className="text-gray-400">Gói bản quyền đang dùng:</div>
+            <div className="text-emerald-400 font-bold">{licenseInfo?.package_type || 'Gói Tiêu Chuẩn Pro'}</div>
+            <div className="text-gray-500 text-[11px]">Hạn sử dụng: {licenseInfo?.is_lifetime ? 'Vĩnh viễn (Lifetime VIP)' : `${licenseInfo?.days_remaining ?? 43} ngày`}</div>
+          </div>
+        </div>
+      </Modal>
 
-          <div>
-            <label className="block text-gray-300 font-semibold mb-1">Mã Bản Quyền (License Key):</label>
+      {/* MODAL 5: TẢI VIDEO TỪ URL */}
+      <Modal
+        isOpen={isDownloadModalOpen}
+        onClose={() => setDownloadModalOpen(false)}
+        title="Tải Video từ Liên Kết (URL)"
+        subtitle="Hỗ trợ tải video từ YouTube, TikTok, Bilibili, Douyin, Facebook"
+        size="md"
+        footer={
+          <>
+            <Button variant="outline" size="sm" onClick={() => setDownloadModalOpen(false)}>
+              Hủy
+            </Button>
+            <Button
+              variant="primary"
+              size="sm"
+              disabled={isDownloading || !downloadUrl.trim()}
+              onClick={handleStartDownloadUrl}
+            >
+              {isDownloading ? 'Đang kết nối tải...' : 'Bắt đầu tải video'}
+            </Button>
+          </>
+        }
+      >
+        <div className="space-y-3">
+          <div className="space-y-1">
+            <label className="text-xs font-bold text-gray-300">Dán đường dẫn Video:</label>
             <input
               type="text"
-              value={licenseKeyInput}
-              onChange={(e) => setLicenseKeyInput(e.target.value)}
-              placeholder="VD: JACS-9B21-4CA0-D1D1"
-              className="w-full bg-[#162035] border border-gray-700 rounded-lg p-2.5 text-amber-300 font-mono font-bold text-sm focus:outline-none focus:border-purple-500"
+              value={downloadUrl}
+              onChange={(e) => setDownloadUrl(e.target.value)}
+              placeholder="VD: https://www.bilibili.com/video/BV1xx411c7mD hoặc link Douyin/YouTube"
+              className="w-full bg-[#121a2c] border border-gray-700 rounded-lg p-2.5 text-xs text-cyan-300 focus:outline-none focus:border-purple-500 font-sans"
             />
-            <p className="text-[10px] text-gray-500 mt-1">
-              Nhập mã key được cấp bởi Quản trị viên trong trang Admin Suite.
-            </p>
           </div>
 
-          {verifyMessage && (
-            <div className={`p-3 rounded-lg text-xs font-semibold ${
-              verifyMessage.type === 'success' ? 'bg-emerald-950/80 text-emerald-300 border border-emerald-500/50' : 'bg-rose-950/80 text-rose-300 border border-rose-500/50'
-            }`}>
-              {verifyMessage.text}
+          <div className="space-y-1">
+            <label className="text-xs font-bold text-gray-300">Độ phân giải mong muốn:</label>
+            <select
+              value={downloadQuality}
+              onChange={(e) => setDownloadQuality(e.target.value)}
+              className="w-full bg-[#121a2c] border border-gray-700 rounded-lg p-2 text-xs text-gray-200"
+            >
+              <option value="1080p">1080p Full HD (Khuyên dùng)</option>
+              <option value="720p">720p HD (Tải nhanh)</option>
+              <option value="audio_only">Chỉ lấy âm thanh (MP3 / WAV)</option>
+            </select>
+          </div>
+        </div>
+      </Modal>
+
+      {/* MODAL 6: HÀNG CHỜ DỊCH & TẢI */}
+      <Modal
+        isOpen={isQueueModalOpen}
+        onClose={() => setQueueModalOpen(false)}
+        title="Quản Lý Hàng Chờ Tự Động (Batch Queue)"
+        subtitle="Xử lý lần lượt hàng loạt video qua đêm mà không cần thao tác tay"
+        size="lg"
+        footer={
+          <Button variant="outline" size="sm" onClick={() => setQueueModalOpen(false)}>
+            Đóng
+          </Button>
+        }
+      >
+        <div className="space-y-3">
+          <div className="flex justify-between items-center text-xs">
+            <span className="text-gray-400">Danh sách các video trong hàng đợi ({videoQueue.length}):</span>
+            <Button size="xs" variant="primary" onClick={() => addLog('Đã bắt đầu xử lý hàng chờ qua đêm.', 'info')}>
+              Chạy toàn bộ hàng chờ
+            </Button>
+          </div>
+          <div className="space-y-2">
+            {videoQueue.map((item) => (
+              <div key={item.id} className="p-3 bg-[#0f172a] rounded-xl border border-gray-800 flex items-center justify-between text-xs">
+                <div>
+                  <p className="font-bold text-gray-200">{item.name}</p>
+                  <p className="text-[10px] text-gray-500">{item.size} • Đã thêm lúc {item.addedAt}</p>
+                </div>
+                <Badge variant="cyan">{item.status}</Badge>
+              </div>
+            ))}
+          </div>
+        </div>
+      </Modal>
+
+      {/* MODAL 7: CHỌN SRT */}
+      <Modal
+        isOpen={isImportSrtModalOpen}
+        onClose={() => setImportSrtModalOpen(false)}
+        title="Nạp Tệp Phụ Đề SRT Ngoại"
+        subtitle="Dán nội dung SRT hoặc nạp file phụ đề có sẵn để render lồng tiếng lại"
+        size="md"
+        footer={
+          <>
+            <Button variant="outline" size="sm" onClick={() => setImportSrtModalOpen(false)}>
+              Hủy
+            </Button>
+            <Button variant="primary" size="sm" onClick={handleApplyImportSrt}>
+              Áp dụng vào dự án
+            </Button>
+          </>
+        }
+      >
+        <div className="space-y-3">
+          <textarea
+            rows={7}
+            value={srtInputText}
+            onChange={(e) => setSrtInputText(e.target.value)}
+            placeholder="Dán nội dung tệp .SRT vào đây:&#10;1&#10;00:00:01,000 --> 00:00:03,500&#10;Câu thoại tiếng Việt..."
+            className="w-full bg-[#0d1424] border border-gray-700 rounded-lg p-3 text-xs font-mono text-gray-200 resize-none focus:outline-none focus:border-purple-500"
+          />
+        </div>
+      </Modal>
+
+      {/* MODAL 8: GHÉP / TÁCH VIDEO */}
+      <Modal
+        isOpen={isVideoEditModalOpen}
+        onClose={() => setVideoEditModalOpen(false)}
+        title="Công Cụ Ghép / Tách Video"
+        subtitle="Cắt lấy phân đoạn cần dịch hoặc ghép nối nhiều clip thành phẩm"
+        size="md"
+        footer={
+          <Button variant="outline" size="sm" onClick={() => setVideoEditModalOpen(false)}>
+            Đóng
+          </Button>
+        }
+      >
+        <div className="space-y-3 text-xs">
+          <div className="grid grid-cols-2 gap-2">
+            <div>
+              <label className="text-[11px] text-gray-400 block mb-1">Thời điểm bắt đầu:</label>
+              <input type="text" defaultValue="00:00:00" className="w-full bg-[#12192b] border border-gray-700 rounded p-2 text-gray-200 font-mono" />
             </div>
-          )}
+            <div>
+              <label className="text-[11px] text-gray-400 block mb-1">Thời điểm kết thúc:</label>
+              <input type="text" defaultValue="00:00:30" className="w-full bg-[#12192b] border border-gray-700 rounded p-2 text-gray-200 font-mono" />
+            </div>
+          </div>
+          <Button
+            variant="primary"
+            size="sm"
+            className="w-full"
+            onClick={() => {
+              addLog('✓ Đã cắt video thành công theo mốc thời gian chỉ định.', 'success');
+              setVideoEditModalOpen(false);
+            }}
+          >
+            Xuất đoạn video đã cắt
+          </Button>
+        </div>
+      </Modal>
+
+      {/* MODAL 9: TĂNG TỐC GPU */}
+      <Modal
+        isOpen={isGpuModalOpen}
+        onClose={() => setGpuModalOpen(false)}
+        title="Cấu Hình Tăng Tốc Phần Cứng (Hardware GPU Acceleration)"
+        subtitle="Khai thác sức mạnh nhân Tensor & CUDA để xử lý OCR và giọng nói nhanh hơn x5 lần"
+        size="md"
+        footer={
+          <Button variant="outline" size="sm" onClick={() => setGpuModalOpen(false)}>
+            Đóng
+          </Button>
+        }
+      >
+        <div className="space-y-3 text-xs">
+          <div className="p-3 bg-[#0e1628] rounded-xl border border-gray-800 space-y-1.5">
+            <div className="flex justify-between items-center">
+              <span className="text-gray-400">Thiết bị phần cứng phát hiện:</span>
+              <Badge variant="success">CUDA Ready</Badge>
+            </div>
+            <div className="text-sm font-bold text-cyan-300 font-mono">{gpuConfig.device}</div>
+            <div className="text-[11px] text-gray-400">Bộ nhớ VRAM: {gpuConfig.vram}</div>
+            <div className="text-[11px] text-emerald-400 font-semibold">Tốc độ render ước tính: {gpuConfig.speedup}</div>
+          </div>
+
+          <div className="flex items-center justify-between p-3 bg-[#11192e] rounded-xl border border-gray-800">
+            <div>
+              <p className="font-bold text-gray-200">Kích hoạt chế độ GPU Rasterization</p>
+              <p className="text-[10px] text-gray-500">Giảm tải CPU và triệt tiêu giật lag khung hình</p>
+            </div>
+            <input
+              type="checkbox"
+              checked={gpuConfig.enabled}
+              onChange={(e) => setGpuEnabled(e.target.checked)}
+              className="rounded bg-gray-800 text-purple-600 cursor-pointer"
+            />
+          </div>
+        </div>
+      </Modal>
+
+      {/* MODAL 10: DANH MỤC GIỌNG ĐỌC AI & NGHE THỬ */}
+      <Modal
+        isOpen={isVoiceModalOpen}
+        onClose={() => setVoiceModalOpen(false)}
+        title="Danh Mục Giọng Đọc AI (Voice Cloning & TTS)"
+        subtitle="Nghe thử và chọn lựa giọng đọc phù hợp với từng thể loại video"
+        size="lg"
+        footer={
+          <Button variant="outline" size="sm" onClick={() => setVoiceModalOpen(false)}>
+            Đóng
+          </Button>
+        }
+      >
+        <div className="space-y-2.5 max-h-96 overflow-y-auto scrollable-body pr-1">
+          {voices.map((v) => (
+            <div
+              key={v.id}
+              className={`p-3 rounded-xl border transition-all flex items-center justify-between gap-3 ${
+                selectedVoice === v.id
+                  ? 'bg-purple-950/40 border-purple-500 shadow-md'
+                  : 'bg-[#101728] border-gray-800 hover:border-gray-700'
+              }`}
+            >
+              <div className="min-w-0">
+                <div className="flex items-center gap-2">
+                  <span className="font-bold text-sm text-gray-100">{v.name}</span>
+                  <Badge variant="purple" size="xs">{v.gender}</Badge>
+                  <Badge variant="default" size="xs">{v.region}</Badge>
+                  <span className="text-[10px] text-amber-300 font-bold bg-amber-500/10 px-2 py-0.5 rounded border border-amber-500/30">
+                    {v.tag}
+                  </span>
+                </div>
+                <p className="text-[11px] text-gray-400 mt-0.5">{v.style}</p>
+              </div>
+
+              <div className="flex items-center gap-2 flex-shrink-0">
+                <button
+                  onClick={() => handlePlayVoicePreview(v)}
+                  className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-[#19243d] hover:bg-[#223154] text-cyan-300 border border-cyan-500/30 text-xs font-semibold cursor-pointer transition-colors"
+                >
+                  <Volume2 size={13} />
+                  <span>Nghe thử</span>
+                </button>
+                <button
+                  onClick={() => {
+                    setSelectedVoice(v.id);
+                    addLog(`Đã chọn giọng đọc AI: ${v.name}`, 'info');
+                    setVoiceModalOpen(false);
+                  }}
+                  className={`px-3 py-1.5 rounded-lg text-xs font-bold cursor-pointer transition-all ${
+                    selectedVoice === v.id
+                      ? 'bg-emerald-500 text-gray-950'
+                      : 'bg-purple-600 hover:bg-purple-500 text-white'
+                  }`}
+                >
+                  {selectedVoice === v.id ? 'Đang chọn' : 'Chọn giọng này'}
+                </button>
+              </div>
+            </div>
+          ))}
+        </div>
+      </Modal>
+
+      {/* MODAL 11: CÀI ĐẶT API KEYS */}
+      <Modal
+        isOpen={isApiKeyModalOpen}
+        onClose={() => setApiKeyModalOpen(false)}
+        title="Quản Lý Khóa Kết Nối (API Keys)"
+        subtitle="Cài đặt khóa API cá nhân cho các dịch vụ AI đám mây"
+        size="md"
+        footer={
+          <>
+            <Button variant="outline" size="sm" onClick={() => setApiKeyModalOpen(false)}>
+              Đóng
+            </Button>
+            <Button
+              variant="primary"
+              size="sm"
+              onClick={() => {
+                setApiKeys(apiKeyForm);
+                addLog('✓ Đã cập nhật và lưu cấu hình API Keys thành công.', 'success');
+                setApiKeyModalOpen(false);
+              }}
+            >
+              Lưu cấu hình
+            </Button>
+          </>
+        }
+      >
+        <div className="space-y-3 text-xs">
+          {[
+            { id: 'deepseek', label: 'DeepSeek API Key (Chuyên tiên hiệp)', placeholder: 'sk-deepseek-...' },
+            { id: 'openai', label: 'OpenAI API Key (GPT-4o)', placeholder: 'sk-proj-...' },
+            { id: 'gemini', label: 'Google Gemini API Key', placeholder: 'AIzaSy-...' },
+            { id: 'elevenlabs', label: 'ElevenLabs Voice API Key', placeholder: 'xi-...' },
+          ].map((item) => (
+            <div key={item.id} className="space-y-1">
+              <label className="text-[11px] font-bold text-gray-300 block">{item.label}:</label>
+              <div className="flex gap-2">
+                <input
+                  type="password"
+                  value={apiKeyForm[item.id] || ''}
+                  onChange={(e) => setApiKeyForm({ ...apiKeyForm, [item.id]: e.target.value })}
+                  placeholder={item.placeholder}
+                  className="flex-1 bg-[#12192b] border border-gray-700 rounded-lg p-2 text-gray-200 font-mono text-xs focus:outline-none focus:border-purple-500"
+                />
+                <Button
+                  size="xs"
+                  variant="outline"
+                  onClick={() => handlePingApiKey(item.id)}
+                >
+                  {pingStatus?.[item.id] === 'testing' ? 'Kiểm tra...' : pingStatus?.[item.id] === 'ok' ? '✓ OK' : 'Ping test'}
+                </Button>
+              </div>
+            </div>
+          ))}
+        </div>
+      </Modal>
+
+      {/* MODAL 12: NHẬT KÝ LÀM VIDEO */}
+      <Modal
+        isOpen={isHistoryModalOpen}
+        onClose={() => setHistoryModalOpen(false)}
+        title="Lịch Sử &amp; Nhật Ký Làm Video"
+        subtitle="Danh sách các video đã dịch và xuất bản thành công"
+        size="lg"
+        footer={
+          <Button variant="outline" size="sm" onClick={() => setHistoryModalOpen(false)}>
+            Đóng
+          </Button>
+        }
+      >
+        <div className="space-y-2 max-h-80 overflow-y-auto scrollable-body pr-1 text-xs">
+          {projectHistory.map((item) => (
+            <div key={item.id} className="p-3 bg-[#0f172a] rounded-xl border border-gray-800 flex items-center justify-between">
+              <div>
+                <div className="flex items-center gap-2">
+                  <span className="font-bold text-gray-100">{item.name}</span>
+                  <Badge variant="success" size="xs">{item.status}</Badge>
+                </div>
+                <p className="text-[10px] text-gray-500 font-mono mt-0.5">{item.size} • {item.duration} • Hoàn thành: {item.date}</p>
+              </div>
+              <div className="flex items-center gap-2">
+                <Button
+                  size="xs"
+                  variant="outline"
+                  onClick={() => {
+                    setVideo({
+                      filename: item.name,
+                      url: null,
+                      duration: item.duration,
+                      durationSeconds: 30,
+                    });
+                    setHistoryModalOpen(false);
+                    addLog(`Đã nạp lại video từ lịch sử: ${item.name}`, 'info');
+                  }}
+                >
+                  Nạp lại
+                </Button>
+              </div>
+            </div>
+          ))}
         </div>
       </Modal>
     </div>

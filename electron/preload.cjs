@@ -6,5 +6,8 @@ contextBridge.exposeInMainWorld('electronAPI', {
   minimize: () => ipcRenderer.send('window-minimize'),
   close: () => ipcRenderer.send('window-close'),
   getHwid: () => ipcRenderer.invoke('get-hwid'),
-  getLicense: () => ipcRenderer.invoke('get-license')
+  getLicense: () => ipcRenderer.invoke('get-license'),
+  openFileDialog: (options) => ipcRenderer.invoke('open-file-dialog', options),
+  saveFileDialog: (options) => ipcRenderer.invoke('save-file-dialog', options),
+  openPath: (targetPath) => ipcRenderer.invoke('open-path', targetPath)
 });

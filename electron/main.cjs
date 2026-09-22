@@ -1,4 +1,4 @@
-const { app, BrowserWindow, ipcMain } = require('electron');
+const { app, BrowserWindow, ipcMain, dialog, shell } = require('electron');
 const path = require('path');
 const fs = require('fs');
 const http = require('http');
@@ -219,6 +219,66 @@ async function createWindow() {
       mainWindow.center();
       mainWindow.setTitle('PeiPei Dub Studio 1.5.73 - Dịch & Lồng tiếng Video');
     }
+  });
+
+  ipcMain.handle('open-file-dialog', async (event, opts = {}) => {
+    try {
+      const defaultFilters = opts.filters || [
+        { name: 'Video Files', extensions: ['mp4', 'mkv', 'avi', 'mov', 'webm', 'flv', 'ts'] },
+        { name: 'All Files', extensions: ['*'] }
+      ];
+      const result = await dialog.showOpenDialog(mainWindow, {
+        title: opts.title || 'Chọn tệp video',
+        properties: ['openFile'],
+        filters: defaultFilters
+      });
+      if (!result.canceled && result.filePaths.length > 0) {
+        const filePath = result.filePaths[0];
+        const stats = fs.statSync(filePath);
+        return {
+          canceled: false,
+          filePath: filePath,
+          fileName: path.basename(filePath),
+          size: stats.size
+        };
+      }
+      return { canceled: true };
+    } catch (e) {
+      log('open-file-dialog error: ' + e);
+      return { canceled: true, error: e.message };
+    }
+  });
+
+  ipcMain.handle('save-file-dialog', async (event, opts = {}) => {
+    try {
+      const result = await dialog.showSaveDialog(mainWindow, {
+        title: opts.title || 'Lưu tệp phụ đề SRT',
+        defaultPath: opts.defaultPath || 'output.srt',
+        filters: opts.filters || [{ name: 'Subtitle Files', extensions: ['srt'] }]
+      });
+      if (!result.canceled && result.filePath) {
+        if (opts.content) {
+          fs.writeFileSync(result.filePath, opts.content, 'utf8');
+        }
+        return { canceled: false, filePath: result.filePath };
+      }
+      return { canceled: true };
+    } catch (e) {
+      log('save-file-dialog error: ' + e);
+      return { canceled: true, error: e.message };
+    }
+  });
+
+  ipcMain.handle('open-path', async (event, targetPath) => {
+    try {
+      if (targetPath) {
+        await shell.openPath(targetPath);
+        return true;
+      }
+    } catch (e) {
+      log('open-path error: ' + e);
+    }
+    return false;
   });
 
   ipcMain.on('window-minimize', () => {
