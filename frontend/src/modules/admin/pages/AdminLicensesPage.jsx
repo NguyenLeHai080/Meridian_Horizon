@@ -27,6 +27,7 @@ import {
   ChevronDown
 } from 'lucide-react';
 import { AdminSidebar } from '../components/AdminSidebar';
+import { AdminHeader } from '../components/AdminHeader';
 import { Modal } from '@/shared/components/modal/Modal';
 import { Button } from '@/shared/components/ui/Button';
 import useAdminStore from '../store/adminStore';
@@ -163,64 +164,7 @@ export const AdminLicensesPage = () => {
       {/* 2. MAIN CANVAS CHUẨN LIGHT THEME NHƯ HÌNH MẪU */}
       <div className="flex-1 flex flex-col min-w-0 h-full overflow-hidden">
         {/* TOP BAR TRẮNG TINH TẾ */}
-        <header className="h-14 flex-shrink-0 bg-white border-b border-gray-200 px-6 flex items-center justify-between text-xs select-none shadow-sm z-10">
-          <div className="relative w-80">
-            <Search size={14} className="absolute left-3 top-2.5 text-gray-400" />
-            <input
-              type="text"
-              placeholder="Tìm tên hoặc email..."
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              className="w-full bg-[#f8fafc] border border-gray-200 rounded-lg pl-9 pr-8 py-1.5 text-xs text-gray-800 placeholder-gray-400 focus:outline-none focus:border-orange-500 focus:bg-white transition-all shadow-inner"
-            />
-            <span className="absolute right-2.5 top-2 px-1.5 py-0.5 rounded bg-gray-200 text-gray-500 text-[10px] font-mono">
-              ⌘K
-            </span>
-          </div>
-
-          <div className="flex items-center gap-3">
-            {/* Status 0 Máy Online */}
-            <div className="flex items-center gap-1.5 px-3 py-1 rounded-full bg-emerald-50 border border-emerald-200 text-emerald-600 font-semibold text-[11px]">
-              <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
-              <span>{onlineCount} Máy Online</span>
-            </div>
-
-            {/* Refresh Button */}
-            <button
-              onClick={() => fetchLicenses()}
-              className="p-2 rounded-lg bg-gray-50 hover:bg-gray-100 text-gray-600 border border-gray-200 transition-colors shadow-sm"
-              title="Làm mới dữ liệu"
-            >
-              <RefreshCw size={13} className={isLoading ? 'animate-spin text-orange-500' : ''} />
-            </button>
-
-            {/* Notification Bell */}
-            <button className="p-2 rounded-lg bg-gray-50 hover:bg-gray-100 text-gray-600 border border-gray-200 transition-colors relative shadow-sm">
-              <Bell size={13} />
-              {expiredCount > 0 && (
-                <span className="absolute top-1 right-1 w-2 h-2 rounded-full bg-rose-500" />
-              )}
-            </button>
-
-            {/* Language Selector */}
-            <div className="flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-gray-50 border border-gray-200 text-gray-700 text-[11px] font-medium shadow-sm">
-              <span>🇻🇳</span>
-              <span>Tiếng Việt</span>
-              <ChevronDown size={12} className="text-gray-400" />
-            </div>
-
-            {/* User Profile Avatar */}
-            <div className="flex items-center gap-2 pl-2 border-l border-gray-200">
-              <div className="w-8 h-8 rounded-full bg-[#f97316] flex items-center justify-center font-bold text-white text-xs shadow-sm">
-                AD
-              </div>
-              <div className="leading-tight text-left">
-                <div className="font-bold text-gray-800 text-xs">Superadmin</div>
-                <div className="text-[10px] text-gray-400 font-semibold uppercase">ADMIN</div>
-              </div>
-            </div>
-          </div>
-        </header>
+        <AdminHeader onSearch={setSearchQuery} />
 
         {/* MAIN BODY SCROLLABLE NỀN XÁM NHẸ #f8fafc */}
         <main className="flex-1 overflow-y-auto scrollable-body p-6 space-y-6">

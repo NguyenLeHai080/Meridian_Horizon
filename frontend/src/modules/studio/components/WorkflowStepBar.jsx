@@ -38,6 +38,27 @@ export const WorkflowStepBar = ({ onOpenSelectVideoModal }) => {
     { id: 5, label: '5. Xuất bản review' },
   ];
 
+  const permissions = (() => {
+    try {
+      const saved = localStorage.getItem('wukong_permissions');
+      return saved ? JSON.parse(saved) : null;
+    } catch (e) {
+      return null;
+    }
+  })();
+
+  const allowDubbing = permissions ? permissions.module_video_dubbing !== false : true;
+  const allowComics = permissions ? permissions.module_movie_review !== false : true;
+
+  // Tự động chuyển tab nếu tab hiện tại bị cấm quyền
+  React.useEffect(() => {
+    if (!allowDubbing && allowComics && activeTab !== 'comics') {
+      setActiveTab('comics');
+    } else if (allowDubbing && !allowComics && activeTab === 'comics') {
+      setActiveTab('dubbing');
+    }
+  }, [allowDubbing, allowComics, activeTab, setActiveTab]);
+
   const steps = activeTab === 'comics' ? reviewSteps : dubbingSteps;
 
   // Xử lý mở hộp thoại chọn Video (Ưu tiên Electron Native File Dialog, Fallback Web Input)
@@ -118,28 +139,32 @@ export const WorkflowStepBar = ({ onOpenSelectVideoModal }) => {
       {/* 1. TOP TABS: Dịch lồng tiếng video & Review Truyện Tranh */}
       <div className="px-4 py-2 flex items-center justify-between bg-[#070a12] border-b border-gray-800/80">
         <div className="flex items-center gap-2">
-          <button
-            onClick={() => setActiveTab('dubbing')}
-            className={`flex items-center gap-1.5 px-4 py-1.5 rounded-lg text-xs font-bold transition-all cursor-pointer ${
-              activeTab === 'dubbing'
-                ? 'bg-gradient-to-r from-purple-600 to-indigo-600 text-white shadow-md shadow-purple-950/50'
-                : 'bg-[#12192b] text-gray-400 hover:text-white border border-gray-800'
-            }`}
-          >
-            <Film size={13} />
-            <span>Dịch Lồng tiếng video</span>
-          </button>
-          <button
-            onClick={() => setActiveTab('comics')}
-            className={`flex items-center gap-1.5 px-4 py-1.5 rounded-lg text-xs font-bold transition-all cursor-pointer ${
-              activeTab === 'comics'
-                ? 'bg-gradient-to-r from-purple-600 to-indigo-600 text-white shadow-md shadow-purple-950/50'
-                : 'bg-[#12192b] text-gray-400 hover:text-white border border-gray-800'
-            }`}
-          >
-            <Layers size={13} />
-            <span>Review Phim & Truyện Tranh</span>
-          </button>
+          {allowDubbing && (
+            <button
+              onClick={() => setActiveTab('dubbing')}
+              className={`flex items-center gap-1.5 px-4 py-1.5 rounded-lg text-xs font-bold transition-all cursor-pointer ${
+                activeTab === 'dubbing'
+                  ? 'bg-gradient-to-r from-purple-600 to-indigo-600 text-white shadow-md shadow-purple-950/50'
+                  : 'bg-[#12192b] text-gray-400 hover:text-white border border-gray-800'
+              }`}
+            >
+              <Film size={13} />
+              <span>Dịch Lồng tiếng video</span>
+            </button>
+          )}
+          {allowComics && (
+            <button
+              onClick={() => setActiveTab('comics')}
+              className={`flex items-center gap-1.5 px-4 py-1.5 rounded-lg text-xs font-bold transition-all cursor-pointer ${
+                activeTab === 'comics'
+                  ? 'bg-gradient-to-r from-purple-600 to-indigo-600 text-white shadow-md shadow-purple-950/50'
+                  : 'bg-[#12192b] text-gray-400 hover:text-white border border-gray-800'
+              }`}
+            >
+              <Layers size={13} />
+              <span>Review Phim & Truyện Tranh</span>
+            </button>
+          )}
         </div>
 
         <div className="text-[11px] text-gray-400 flex items-center gap-2 font-mono">

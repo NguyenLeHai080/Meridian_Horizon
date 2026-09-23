@@ -1,5 +1,5 @@
 from datetime import datetime
-from typing import List, Optional
+from typing import List, Optional, Dict, Any
 from pydantic import BaseModel, Field
 
 class AdminStatsResponse(BaseModel):
@@ -30,6 +30,68 @@ class UpdateUserCreditsRequest(BaseModel):
 class ToggleUserStatusRequest(BaseModel):
     is_active: bool = Field(..., description="Trạng thái kích hoạt tài khoản")
 
+# === ACCOUNT KEYS DTO & REQUESTS ===
+class AccountKeyDTO(BaseModel):
+    id: int
+    account_id: int
+    license_key: str
+    key: Optional[str] = None
+    package_type: str
+    days_remaining: int
+    is_lifetime: bool
+    status: str
+    last_used: Optional[datetime] = None
+    last_ip: Optional[str] = None
+    created_at: datetime
+
+    class Config:
+        from_attributes = True
+
+class AddAccountKeyRequest(BaseModel):
+    package_type: str = Field(default="AI Pro Studio (365 ngày)")
+    days_remaining: int = Field(default=365)
+    is_lifetime: bool = Field(default=False)
+    custom_key: Optional[str] = None
+
+# === CLIENT ACCOUNTS DTO & REQUESTS ===
+class ClientAccountDTO(BaseModel):
+    id: int
+    machine_name: str
+    customer_name: str
+    user_email: str
+    machine_id: str
+    note: Optional[str] = None
+    role: str
+    is_active: bool
+    permissions: Dict[str, Any]
+    created_at: datetime
+    keys: List[AccountKeyDTO] = []
+
+    class Config:
+        from_attributes = True
+
+class CreateClientAccountRequest(BaseModel):
+    machine_name: str = Field(..., description="Tên nhận diện máy khách")
+    customer_name: str = Field(..., description="Tên khách hàng")
+    user_email: str = Field(..., description="Email liên hệ")
+    machine_id: Optional[str] = Field(None, description="Mã phần cứng (HWID)")
+    note: Optional[str] = None
+    role: Optional[str] = "user"
+    permissions: Optional[Dict[str, Any]] = None
+
+class UpdateClientAccountRequest(BaseModel):
+    machine_name: Optional[str] = None
+    customer_name: Optional[str] = None
+    user_email: Optional[str] = None
+    machine_id: Optional[str] = None
+    note: Optional[str] = None
+    role: Optional[str] = None
+    is_active: Optional[bool] = None
+
+class UpdateAccountPermissionsRequest(BaseModel):
+    permissions: Dict[str, Any]
+
+# === LEGACY TOOL LICENSE DTO & REQUESTS ===
 class CreateLicenseRequest(BaseModel):
     customer_name: str = Field(..., description="Tên khách hàng hoặc tên máy")
     user_email: str = Field(..., description="Email người dùng nhận bản quyền tool")
@@ -57,10 +119,14 @@ class VerifyLicenseRequest(BaseModel):
 class VerifyLicenseResponse(BaseModel):
     is_valid: bool
     message: str
+    license_key: Optional[str] = None
     customer_name: Optional[str] = None
+    machine_name: Optional[str] = None
+    machine_id: Optional[str] = None
     package_type: Optional[str] = None
     days_remaining: Optional[int] = None
     is_lifetime: Optional[bool] = None
+    permissions: Optional[Dict[str, Any]] = None
     expires_at: Optional[datetime] = None
 
 class ToolLicenseDTO(BaseModel):

@@ -5,6 +5,7 @@ import { StudioPage } from '@/modules/studio/pages/StudioPage';
 import { AdminDashboardPage } from '@/modules/admin/pages/AdminDashboardPage';
 import { AdminUsersPage } from '@/modules/admin/pages/AdminUsersPage';
 import { AdminLicensesPage } from '@/modules/admin/pages/AdminLicensesPage';
+import { AdminPermissionsPage } from '@/modules/admin/pages/AdminPermissionsPage';
 import { AdminToolDownloadPage } from '@/modules/admin/pages/AdminToolDownloadPage';
 import useAuthStore from '@/modules/auth/store/authStore';
 
@@ -73,6 +74,14 @@ export const AppRoutes = () => {
           element={
             <PrivateRoute>
               <AdminLicensesPage />
+            </PrivateRoute>
+          }
+        />
+        <Route
+          path="/admin/permissions"
+          element={
+            <PrivateRoute>
+              <AdminPermissionsPage />
             </PrivateRoute>
           }
         />

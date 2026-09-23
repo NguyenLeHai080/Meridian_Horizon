@@ -36,6 +36,20 @@ export const StudioSidebar = ({
   const videoQueue = useStudioStore((state) => state.videoQueue);
 
   const isActivated = !!licenseInfo;
+  const permissions = licenseInfo?.permissions || (() => {
+    try {
+      const saved = localStorage.getItem('wukong_permissions');
+      return saved ? JSON.parse(saved) : null;
+    } catch (e) {
+      return null;
+    }
+  })();
+
+  const isPermitted = (permKey) => {
+    if (!permissions) return true;
+    return permissions[permKey] !== false;
+  };
+
   const licenseLabel = !isActivated
     ? '🛡️ Kích hoạt Bản quyền'
     : licenseInfo?.is_lifetime
@@ -69,34 +83,42 @@ export const StudioSidebar = ({
             <p className="px-2.5 text-[10px] uppercase font-bold text-gray-500 tracking-wider">
               NGUỒN
             </p>
-            <button
-              onClick={onOpenDownloadModal}
-              className="w-full flex items-center gap-2 px-2.5 py-1.5 rounded-lg text-xs text-gray-300 hover:text-white hover:bg-[#161f36] transition-colors text-left cursor-pointer"
-            >
-              <Download size={13} className="text-cyan-400 flex-shrink-0" />
-              <span className="truncate">Tải video (URL)</span>
-            </button>
-            <button
-              onClick={onOpenQueueModal}
-              className="w-full flex items-center gap-2 px-2.5 py-1.5 rounded-lg text-xs text-gray-300 hover:text-white hover:bg-[#161f36] transition-colors text-left cursor-pointer"
-            >
-              <Clock size={13} className="text-amber-400 flex-shrink-0" />
-              <span className="truncate">Hàng chờ tải (qua đêm)</span>
-            </button>
-            <button
-              onClick={onOpenDownloadModal}
-              className="w-full flex items-center gap-2 px-2.5 py-1.5 rounded-lg text-xs text-gray-300 hover:text-white hover:bg-[#161f36] transition-colors text-left cursor-pointer"
-            >
-              <Radio size={13} className="text-purple-400 flex-shrink-0" />
-              <span className="truncate">Quét kênh (tải hàng loạt)</span>
-            </button>
-            <button
-              onClick={onOpenImportSrtModal}
-              className="w-full flex items-center gap-2 px-2.5 py-1.5 rounded-lg text-xs text-gray-300 hover:text-white hover:bg-[#161f36] transition-colors text-left cursor-pointer"
-            >
-              <FileText size={13} className="text-emerald-400 flex-shrink-0" />
-              <span className="truncate">Chọn SRT</span>
-            </button>
+            {isPermitted('source_download_url') && (
+              <button
+                onClick={onOpenDownloadModal}
+                className="w-full flex items-center gap-2 px-2.5 py-1.5 rounded-lg text-xs text-gray-300 hover:text-white hover:bg-[#161f36] transition-colors text-left cursor-pointer"
+              >
+                <Download size={13} className="text-cyan-400 flex-shrink-0" />
+                <span className="truncate">Tải video (URL)</span>
+              </button>
+            )}
+            {isPermitted('source_queue') && (
+              <button
+                onClick={onOpenQueueModal}
+                className="w-full flex items-center gap-2 px-2.5 py-1.5 rounded-lg text-xs text-gray-300 hover:text-white hover:bg-[#161f36] transition-colors text-left cursor-pointer"
+              >
+                <Clock size={13} className="text-amber-400 flex-shrink-0" />
+                <span className="truncate">Hàng chờ tải (qua đêm)</span>
+              </button>
+            )}
+            {isPermitted('source_channel_scan') && (
+              <button
+                onClick={onOpenDownloadModal}
+                className="w-full flex items-center gap-2 px-2.5 py-1.5 rounded-lg text-xs text-gray-300 hover:text-white hover:bg-[#161f36] transition-colors text-left cursor-pointer"
+              >
+                <Radio size={13} className="text-purple-400 flex-shrink-0" />
+                <span className="truncate">Quét kênh (tải hàng loạt)</span>
+              </button>
+            )}
+            {isPermitted('source_import_srt') && (
+              <button
+                onClick={onOpenImportSrtModal}
+                className="w-full flex items-center gap-2 px-2.5 py-1.5 rounded-lg text-xs text-gray-300 hover:text-white hover:bg-[#161f36] transition-colors text-left cursor-pointer"
+              >
+                <FileText size={13} className="text-emerald-400 flex-shrink-0" />
+                <span className="truncate">Chọn SRT</span>
+              </button>
+            )}
           </div>
 
           {/* Nhóm CÔNG CỤ */}
@@ -104,58 +126,70 @@ export const StudioSidebar = ({
             <p className="px-2.5 text-[10px] uppercase font-bold text-gray-500 tracking-wider">
               CÔNG CỤ
             </p>
-            <button
-              onClick={onOpenQueueModal}
-              className="w-full flex items-center justify-between px-2.5 py-1.5 rounded-lg text-xs text-gray-300 hover:text-white hover:bg-[#161f36] transition-colors text-left cursor-pointer"
-            >
-              <div className="flex items-center gap-2 truncate">
-                <ListOrdered size={13} className="text-cyan-400 flex-shrink-0" />
-                <span className="truncate">Hàng chờ dịch</span>
-              </div>
-              <span className="px-1.5 py-0.2 rounded-full bg-cyan-500/20 text-cyan-300 text-[10px] font-mono">
-                {videoQueue?.length || 0}
-              </span>
-            </button>
+            {isPermitted('tool_queue') && (
+              <button
+                onClick={onOpenQueueModal}
+                className="w-full flex items-center justify-between px-2.5 py-1.5 rounded-lg text-xs text-gray-300 hover:text-white hover:bg-[#161f36] transition-colors text-left cursor-pointer"
+              >
+                <div className="flex items-center gap-2 truncate">
+                  <ListOrdered size={13} className="text-cyan-400 flex-shrink-0" />
+                  <span className="truncate">Hàng chờ dịch</span>
+                </div>
+                <span className="px-1.5 py-0.2 rounded-full bg-cyan-500/20 text-cyan-300 text-[10px] font-mono">
+                  {videoQueue?.length || 0}
+                </span>
+              </button>
+            )}
 
-            <button
-              onClick={onOpenVideoEditModal}
-              className="w-full flex items-center gap-2 px-2.5 py-1.5 rounded-lg text-xs text-gray-300 hover:text-white hover:bg-[#161f36] transition-colors text-left cursor-pointer"
-            >
-              <Scissors size={13} className="text-rose-400 flex-shrink-0" />
-              <span className="truncate">Ghép / Tách video</span>
-            </button>
+            {isPermitted('tool_video_split') && (
+              <button
+                onClick={onOpenVideoEditModal}
+                className="w-full flex items-center gap-2 px-2.5 py-1.5 rounded-lg text-xs text-gray-300 hover:text-white hover:bg-[#161f36] transition-colors text-left cursor-pointer"
+              >
+                <Scissors size={13} className="text-rose-400 flex-shrink-0" />
+                <span className="truncate">Ghép / Tách video</span>
+              </button>
+            )}
 
-            <button
-              onClick={onOpenGpuModal}
-              className="w-full flex items-center gap-2 px-2.5 py-1.5 rounded-lg text-xs text-gray-300 hover:text-white hover:bg-[#161f36] transition-colors text-left cursor-pointer"
-            >
-              <Zap size={13} className="text-amber-400 flex-shrink-0" />
-              <span className="truncate">Tăng tốc GPU</span>
-            </button>
+            {isPermitted('tool_gpu') && (
+              <button
+                onClick={onOpenGpuModal}
+                className="w-full flex items-center gap-2 px-2.5 py-1.5 rounded-lg text-xs text-gray-300 hover:text-white hover:bg-[#161f36] transition-colors text-left cursor-pointer"
+              >
+                <Zap size={13} className="text-amber-400 flex-shrink-0" />
+                <span className="truncate">Tăng tốc GPU</span>
+              </button>
+            )}
 
-            <button
-              onClick={onOpenVoiceModal}
-              className="w-full flex items-center gap-2 px-2.5 py-1.5 rounded-lg text-xs text-gray-300 hover:text-white hover:bg-[#161f36] transition-colors text-left cursor-pointer"
-            >
-              <Mic size={13} className="text-purple-400 flex-shrink-0" />
-              <span className="truncate">Giọng clone (tải gói)</span>
-            </button>
+            {isPermitted('tool_voice_clone') && (
+              <button
+                onClick={onOpenVoiceModal}
+                className="w-full flex items-center gap-2 px-2.5 py-1.5 rounded-lg text-xs text-gray-300 hover:text-white hover:bg-[#161f36] transition-colors text-left cursor-pointer"
+              >
+                <Mic size={13} className="text-purple-400 flex-shrink-0" />
+                <span className="truncate">Giọng clone (tải gói)</span>
+              </button>
+            )}
 
-            <button
-              onClick={onOpenVoiceModal}
-              className="w-full flex items-center gap-2 px-2.5 py-1.5 rounded-lg text-xs text-gray-300 hover:text-white hover:bg-[#161f36] transition-colors text-left cursor-pointer"
-            >
-              <Volume2 size={13} className="text-emerald-400 flex-shrink-0" />
-              <span className="truncate">Giọng Việt offline (tải gói)</span>
-            </button>
+            {isPermitted('tool_offline_voice') && (
+              <button
+                onClick={onOpenVoiceModal}
+                className="w-full flex items-center gap-2 px-2.5 py-1.5 rounded-lg text-xs text-gray-300 hover:text-white hover:bg-[#161f36] transition-colors text-left cursor-pointer"
+              >
+                <Volume2 size={13} className="text-emerald-400 flex-shrink-0" />
+                <span className="truncate">Giọng Việt offline (tải gói)</span>
+              </button>
+            )}
 
-            <button
-              onClick={onOpenApiKeyModal}
-              className="w-full flex items-center gap-2 px-2.5 py-1.5 rounded-lg text-xs text-gray-300 hover:text-white hover:bg-[#161f36] transition-colors text-left cursor-pointer"
-            >
-              <Key size={13} className="text-amber-400 flex-shrink-0" />
-              <span className="truncate">API Keys</span>
-            </button>
+            {isPermitted('tool_api_keys') && (
+              <button
+                onClick={onOpenApiKeyModal}
+                className="w-full flex items-center gap-2 px-2.5 py-1.5 rounded-lg text-xs text-gray-300 hover:text-white hover:bg-[#161f36] transition-colors text-left cursor-pointer"
+              >
+                <Key size={13} className="text-amber-400 flex-shrink-0" />
+                <span className="truncate">API Keys</span>
+              </button>
+            )}
 
             {/* Nút Bản Quyền Kích Hoạt */}
             <button

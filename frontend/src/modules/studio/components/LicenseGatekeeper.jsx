@@ -13,6 +13,7 @@ import {
   CreditCard,
   QrCode
 } from 'lucide-react';
+import useAdminStore from '@/modules/admin/store/adminStore';
 
 export const LicenseGatekeeper = ({ onActivated, onClose, asModal = false }) => {
   const [hwid, setHwid] = useState('PC-WIN-510A-6CD39D');
@@ -89,30 +90,15 @@ export const LicenseGatekeeper = ({ onActivated, onClose, asModal = false }) => 
         // Dự phòng offline
       }
 
-      // 2. Xác thực offline linh hoạt (chấp nhận key chuẩn doanh nghiệp)
+      // 2. Tra cứu Key theo Tài khoản & Phân quyền quản trị
       if (!resData) {
-        const isValidFormat =
-          key.startsWith('WUKONG-') ||
-          key.startsWith('JACS-') ||
-          key.startsWith('MH-') ||
-          key.startsWith('VIP-') ||
-          key.startsWith('PEIPEI-') ||
-          key.length >= 16;
-
-        if (isValidFormat) {
-          const isVip = key.includes('VIP') || key.includes('FOREVER') || key.includes('LIFETIME');
-          resData = {
-            is_valid: true,
-            customer_name: 'Khách hàng Wukong Video Pro',
-            package_type: isVip ? 'Gói Vĩnh Viễn VIP (Lifetime)' : 'Gói Tiêu Chuẩn Pro',
-            days_remaining: isVip ? 9999 : 365,
-            is_lifetime: isVip,
-            message: 'Kích hoạt bản quyền thành công!',
-          };
+        const localVerify = useAdminStore.getState().verifyLicenseKey(key, hwid);
+        if (localVerify.is_valid) {
+          resData = localVerify;
         } else {
           setStatusMessage({
             type: 'error',
-            text: 'Mã license không hợp lệ. Vui lòng kiểm tra lại hoặc liên hệ hỗ trợ.',
+            text: localVerify.message || 'Mã license không hợp lệ hoặc đã bị khóa.',
           });
           setIsVerifying(false);
           return;
@@ -122,16 +108,21 @@ export const LicenseGatekeeper = ({ onActivated, onClose, asModal = false }) => 
       const activationPayload = {
         license_key: key,
         machine_id: hwid,
+        machine_name: resData.machine_name || 'Máy Trạm Khách Hàng',
         customer_name: resData.customer_name || 'Khách hàng Wukong Pro',
         package_type: resData.package_type || 'Wukong Video Pro',
         days_remaining: resData.days_remaining ?? 365,
         is_lifetime: resData.is_lifetime || false,
+        permissions: resData.permissions || null,
         activated_at: new Date().toISOString(),
       };
 
       if (saveKey) {
         localStorage.setItem('peipei_license', JSON.stringify(activationPayload));
         localStorage.setItem('wukong_license', JSON.stringify(activationPayload));
+        if (resData.permissions) {
+          localStorage.setItem('wukong_permissions', JSON.stringify(resData.permissions));
+        }
       }
 
       // Gửi tín hiệu sang Electron nếu chạy desktop client
