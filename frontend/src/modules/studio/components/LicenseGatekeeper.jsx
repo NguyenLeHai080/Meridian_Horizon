@@ -1,15 +1,32 @@
 import React, { useState, useEffect } from 'react';
-import { ShieldCheck, Key, Copy, Check, Headphones, AlertCircle, RefreshCw, Cpu, Lock, Zap } from 'lucide-react';
+import {
+  Check,
+  Copy,
+  X,
+  ExternalLink,
+  PhoneCall,
+  MessageSquare,
+  ShieldCheck,
+  AlertCircle,
+  Loader2,
+  Sparkles,
+  CreditCard,
+  QrCode
+} from 'lucide-react';
 
-export const LicenseGatekeeper = ({ onActivated, onClose }) => {
+export const LicenseGatekeeper = ({ onActivated, onClose, asModal = false }) => {
   const [hwid, setHwid] = useState('PC-WIN-510A-6CD39D');
   const [licenseKey, setLicenseKey] = useState('');
+  const [saveKey, setSaveKey] = useState(true);
   const [isVerifying, setIsVerifying] = useState(false);
   const [statusMessage, setStatusMessage] = useState(null);
-  const [copied, setCopied] = useState(false);
+  const [showPricingModal, setShowPricingModal] = useState(false);
+  const [showSupportModal, setShowSupportModal] = useState(false);
+  const [copiedBank, setCopiedBank] = useState(false);
+  const [copiedHwid, setCopiedHwid] = useState(false);
 
   useEffect(() => {
-    // Tạo hoặc lấy HWID ổn định cho máy trạm
+    // Lấy HWID máy tính
     let savedHwid = localStorage.getItem('peipei_hwid');
     if (!savedHwid) {
       const randomSuffix = Math.random().toString(36).substring(2, 8).toUpperCase();
@@ -17,20 +34,25 @@ export const LicenseGatekeeper = ({ onActivated, onClose }) => {
       localStorage.setItem('peipei_hwid', savedHwid);
     }
     setHwid(savedHwid);
-  }, []);
 
-  const handleCopyHwid = () => {
-    navigator.clipboard.writeText(hwid);
-    setCopied(true);
-    setTimeout(() => setCopied(false), 2000);
-  };
+    // Kiểm tra xem trước đó đã lưu key chưa
+    try {
+      const savedLic = localStorage.getItem('peipei_license') || localStorage.getItem('wukong_license');
+      if (savedLic) {
+        const parsed = JSON.parse(savedLic);
+        if (parsed?.license_key) {
+          setLicenseKey(parsed.license_key);
+        }
+      }
+    } catch (e) {}
+  }, []);
 
   const handleVerify = async (keyToVerify = licenseKey) => {
     const key = (keyToVerify || '').trim().toUpperCase();
     if (!key) {
       setStatusMessage({
         type: 'error',
-        text: 'Vui lòng nhập Mã bản quyền (License Key) trước khi kích hoạt.',
+        text: 'Vui lòng nhập license key trước khi kích hoạt.',
       });
       return;
     }
@@ -39,7 +61,7 @@ export const LicenseGatekeeper = ({ onActivated, onClose }) => {
     setStatusMessage(null);
 
     try {
-      // 1. Thử gọi API xác thực trực tuyến qua Backend Admin
+      // 1. Thử gọi backend API nếu có kết nối
       let resData = null;
       try {
         const response = await fetch('http://127.0.0.1:8000/api/v1/admin/licenses/verify', {
@@ -64,242 +86,512 @@ export const LicenseGatekeeper = ({ onActivated, onClose }) => {
           }
         }
       } catch (networkErr) {
-        // Nếu backend tạm thời chưa bật, chuyển sang cơ chế xác thực offline
+        // Dự phòng offline
       }
 
-      // 2. Dự phòng xác thực Offline nếu Server cục bộ không phản hồi
+      // 2. Xác thực offline linh hoạt (chấp nhận key chuẩn doanh nghiệp)
       if (!resData) {
-        if (
-          key.includes('JACS') ||
-          key.includes('MH') ||
-          key.includes('VIP') ||
-          key.includes('PEIPEI') ||
-          key.length >= 16
-        ) {
-          const isVip = key.includes('VIP') || key.includes('FOREVER');
+        const isValidFormat =
+          key.startsWith('WUKONG-') ||
+          key.startsWith('JACS-') ||
+          key.startsWith('MH-') ||
+          key.startsWith('VIP-') ||
+          key.startsWith('PEIPEI-') ||
+          key.length >= 16;
+
+        if (isValidFormat) {
+          const isVip = key.includes('VIP') || key.includes('FOREVER') || key.includes('LIFETIME');
           resData = {
             is_valid: true,
-            customer_name: 'Khách hàng Doanh Nghiệp',
-            package_type: isVip ? 'Vĩnh Viễn (Lifetime VIP)' : 'Gói Tiêu Chuẩn Pro',
-            days_remaining: isVip ? 9999 : 43,
+            customer_name: 'Khách hàng Wukong Video Pro',
+            package_type: isVip ? 'Gói Vĩnh Viễn VIP (Lifetime)' : 'Gói Tiêu Chuẩn Pro',
+            days_remaining: isVip ? 9999 : 365,
             is_lifetime: isVip,
-            message: 'Xác thực bản quyền thành công!',
+            message: 'Kích hoạt bản quyền thành công!',
           };
         } else {
           setStatusMessage({
             type: 'error',
-            text: 'Mã bản quyền không hợp lệ. Vui lòng kiểm tra lại hoặc liên hệ Quản trị viên.',
+            text: 'Mã license không hợp lệ. Vui lòng kiểm tra lại hoặc liên hệ hỗ trợ.',
           });
           setIsVerifying(false);
           return;
         }
       }
 
-      // Lưu trữ thông tin bản quyền đã kích hoạt
       const activationPayload = {
         license_key: key,
         machine_id: hwid,
-        customer_name: resData.customer_name || 'Khách hàng Bản quyền',
-        package_type: resData.package_type || 'Gói Pro Studio',
-        days_remaining: resData.days_remaining ?? 43,
+        customer_name: resData.customer_name || 'Khách hàng Wukong Pro',
+        package_type: resData.package_type || 'Wukong Video Pro',
+        days_remaining: resData.days_remaining ?? 365,
         is_lifetime: resData.is_lifetime || false,
         activated_at: new Date().toISOString(),
       };
 
-      localStorage.setItem('peipei_license', JSON.stringify(activationPayload));
+      if (saveKey) {
+        localStorage.setItem('peipei_license', JSON.stringify(activationPayload));
+        localStorage.setItem('wukong_license', JSON.stringify(activationPayload));
+      }
 
-      // Gửi tín hiệu sang Electron hoặc PyWebView để phóng to cửa sổ lên 1340x840
+      // Gửi tín hiệu sang Electron nếu chạy desktop client
       if (window.electronAPI && window.electronAPI.activateSuccess) {
         try {
           window.electronAPI.activateSuccess(activationPayload);
-        } catch (e) {}
-      } else if (window.pywebview && window.pywebview.api) {
-        try {
-          window.pywebview.api.activate_success(activationPayload);
         } catch (e) {}
       }
 
       setStatusMessage({
         type: 'success',
-        text: `✓ ${resData.message || 'Kích hoạt thành công!'} Đang khởi chạy PeiPei Dub Studio...`,
+        text: '✓ Kích hoạt thành công! Đang chuyển vào giao diện làm việc...',
       });
 
       setTimeout(() => {
-        onActivated(activationPayload);
+        if (onActivated) {
+          onActivated(activationPayload);
+        }
+        if (onClose) {
+          onClose();
+        }
       }, 700);
     } catch (err) {
       setStatusMessage({
         type: 'error',
-        text: 'Có lỗi xảy ra trong quá trình xác thực. Vui lòng thử lại.',
+        text: 'Đã có lỗi xảy ra. Vui lòng thử lại sau.',
       });
     } finally {
       setIsVerifying(false);
     }
   };
 
+  const handleCloseWindow = () => {
+    if (window.electronAPI && window.electronAPI.close) {
+      window.electronAPI.close();
+    } else if (onClose) {
+      onClose();
+    }
+  };
+
+  const handleMinimizeWindow = () => {
+    if (window.electronAPI && window.electronAPI.minimize) {
+      window.electronAPI.minimize();
+    }
+  };
+
   return (
-    <div className="relative overflow-hidden w-full h-full min-h-screen bg-[#0b0f17] text-gray-100 flex flex-col justify-between font-sans select-none transform-gpu">
-      {/* Lightweight Hardware-Accelerated Cyber Background (Triệt tiêu độ trễ/lag) */}
-      <div className="absolute inset-0 bg-gradient-to-b from-[#0e1728] via-[#0b0f17] to-[#06090f] pointer-events-none" />
-      <div className="absolute top-0 right-0 w-80 h-80 bg-gradient-to-bl from-emerald-500/15 via-emerald-500/5 to-transparent pointer-events-none" />
-      <div className="absolute bottom-0 left-0 w-80 h-80 bg-gradient-to-tr from-cyan-500/15 via-cyan-500/5 to-transparent pointer-events-none" />
-
-      {/* 1. Header: Cyber Workstation Identity (Đồng bộ chuẩn PeiPei Dub Studio) */}
-      <div className="relative z-10 px-6 pt-6 pb-4 border-b border-emerald-500/20 bg-[#0f172a]/70 backdrop-blur-sm flex-shrink-0">
-        <div className="flex items-center gap-3.5">
-          {/* Glowing Avatar */}
-          <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-emerald-500/20 via-[#0d1627] to-cyan-500/20 border border-emerald-400/40 flex items-center justify-center shadow-[0_0_15px_rgba(16,185,129,0.2)] relative flex-shrink-0 overflow-hidden">
-            <img src="/icon.png" alt="PeiPei Logo" className="w-10 h-10 object-contain" onError={(e) => { e.target.style.display = 'none'; }} />
-            <span className="text-2xl pointer-events-none absolute">🐼</span>
-            <div className="absolute -top-1 -right-1 w-4 h-4 rounded-full bg-emerald-400 text-gray-950 flex items-center justify-center shadow-[0_0_8px_#34d399]">
-              <Headphones size={9} strokeWidth={3} />
-            </div>
-          </div>
-
-          {/* Title & Gateway Meta */}
-          <div className="flex-1 min-w-0">
-            <div className="flex items-center gap-2">
-              <span className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full bg-emerald-500/10 text-emerald-400 text-[10px] font-mono font-bold border border-emerald-500/30">
-                <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
-                SECURITY GATEWAY
-              </span>
-              <span className="px-1.5 py-0.5 rounded bg-cyan-500/10 text-cyan-300 text-[10px] font-mono font-bold border border-cyan-500/20">
-                v1.5.73
-              </span>
-            </div>
-            <h1 className="text-lg font-black tracking-wide text-transparent bg-clip-text bg-gradient-to-r from-emerald-300 via-teal-200 to-cyan-400 mt-0.5">
-              PeiPei Dub Studio
-            </h1>
-            <p className="text-[11px] text-gray-400 truncate mt-0.5">
-              Khóa Bản Quyền Thiết Bị • AI Video Dubbing & OCR Workstation
-            </p>
-          </div>
-        </div>
-      </div>
-
-      {/* 2. Main Body Content */}
-      <div className="relative z-10 px-6 py-4 flex-1 flex flex-col justify-center space-y-4">
-        {/* Machine Hardware ID Card */}
-        <div className="p-3.5 bg-[#070b14]/90 border border-emerald-500/20 rounded-xl space-y-2 shadow-inner">
-          <div className="flex items-center justify-between text-xs">
-            <span className="text-gray-300 font-bold flex items-center gap-1.5 tracking-wide text-[11px] uppercase">
-              <Cpu size={14} className="text-emerald-400" />
-              <span>Mã phần cứng máy trạm (HWID):</span>
-            </span>
-            <span className="text-[10px] text-emerald-400 font-mono bg-emerald-500/10 px-2 py-0.5 rounded border border-emerald-500/30">
-              ● ĐÃ KHÓA THIẾT BỊ
-            </span>
-          </div>
-
-          <div className="flex items-center justify-between bg-[#0b1220] border border-emerald-500/30 rounded-lg px-3 py-2 shadow-[0_0_15px_rgba(16,185,129,0.04)]">
-            <span className="font-mono text-sm font-black text-cyan-300 tracking-widest selection:bg-emerald-500 selection:text-black">
-              {hwid}
-            </span>
+    <div
+      className={`w-full ${
+        asModal ? 'p-2' : 'h-screen min-h-screen bg-[#0d1017]'
+      } text-gray-100 flex flex-col justify-between font-sans select-none relative overflow-hidden`}
+    >
+      {/* 1. macOS Style Header Bar */}
+      {!asModal && (
+        <header className="h-9 px-3 flex items-center justify-between border-b border-white/[0.04] bg-[#0d1017] select-none z-20">
+          {/* Traffic Lights Buttons */}
+          <div className="flex items-center gap-2">
             <button
-              onClick={handleCopyHwid}
-              className="flex items-center gap-1.5 px-3 py-1 rounded-md bg-[#101b30] hover:bg-emerald-500/20 text-gray-200 hover:text-emerald-300 border border-gray-700 hover:border-emerald-500/50 text-xs font-semibold transition-all cursor-pointer shadow-sm"
-              title="Sao chép mã phần cứng để gửi Quản trị viên"
-            >
-              {copied ? (
-                <>
-                  <Check size={13} className="text-emerald-400" />
-                  <span className="text-emerald-400 font-bold">Đã chép</span>
-                </>
-              ) : (
-                <>
-                  <Copy size={13} />
-                  <span>Sao chép</span>
-                </>
-              )}
-            </button>
+              onClick={handleCloseWindow}
+              className="w-3 h-3 rounded-full bg-[#ff5f56] hover:brightness-110 active:brightness-90 transition-all cursor-pointer shadow-sm"
+              title="Đóng cửa sổ"
+            />
+            <button
+              onClick={handleMinimizeWindow}
+              className="w-3 h-3 rounded-full bg-[#ffbd2e] hover:brightness-110 active:brightness-90 transition-all cursor-pointer shadow-sm"
+              title="Thu nhỏ"
+            />
+            <button
+              onClick={() => {}}
+              className="w-3 h-3 rounded-full bg-[#27c93f] hover:brightness-110 active:brightness-90 transition-all cursor-pointer shadow-sm"
+              title="Toàn màn hình"
+            />
           </div>
-          <p className="text-[10.5px] text-gray-400 leading-normal">
-            Mã định danh được trích xuất từ phần cứng của máy, dùng để gán license chống kích hoạt trùng lặp.
-          </p>
-        </div>
 
-        {/* License Key Input Box */}
-        <div className="space-y-1.5">
-          <label className="block text-xs font-bold text-gray-200 flex items-center gap-1.5 uppercase tracking-wide text-[11px]">
-            <Key size={14} className="text-amber-400" />
-            <span>Nhập Mã Bản Quyền (License Key):</span>
-          </label>
-          <div className="relative">
+          {/* Centered Window Title */}
+          <div className="absolute inset-x-0 mx-auto text-center pointer-events-none">
+            <span className="text-xs text-slate-400 font-medium tracking-wide">
+              Wukong Video Pro
+            </span>
+          </div>
+
+          <div className="w-10" />
+        </header>
+      )}
+
+      {/* 2. Main Centered Activation Card */}
+      <main className="flex-1 flex items-center justify-center p-4 z-10">
+        <div className="w-full max-w-[440px] bg-[#161b26] border border-[#273043] rounded-2xl p-7 shadow-2xl relative">
+          {/* Modal Close button if rendered as modal inside studio */}
+          {asModal && onClose && (
+            <button
+              onClick={onClose}
+              className="absolute top-4 right-4 text-slate-400 hover:text-white p-1 rounded-lg hover:bg-slate-800/60 transition-colors"
+            >
+              <X size={16} />
+            </button>
+          )}
+
+          {/* Glowing Flame Badge Icon */}
+          <div className="flex justify-center mb-3.5">
+            <div className="w-12 h-12 rounded-xl bg-[#1c2334] border border-[#2d3a54] flex items-center justify-center shadow-lg relative group">
+              <div className="absolute inset-0 bg-blue-500/10 rounded-xl blur-sm group-hover:bg-blue-500/20 transition-all" />
+              {/* Stylized 3-Petal Lotus Flame SVG (Cyan/Blue & Gold) */}
+              <svg
+                width="28"
+                height="28"
+                viewBox="0 0 24 24"
+                fill="none"
+                xmlns="http://www.w3.org/2000/svg"
+                className="relative z-10 drop-shadow-[0_2px_8px_rgba(59,130,246,0.5)]"
+              >
+                <defs>
+                  <linearGradient id="center-gold-grad" x1="12" y1="3" x2="12" y2="19" gradientUnits="userSpaceOnUse">
+                    <stop stopColor="#FDE047" />
+                    <stop offset="0.6" stopColor="#EAB308" />
+                    <stop offset="1" stopColor="#CA8A04" />
+                  </linearGradient>
+                  <linearGradient id="wing-blue-grad" x1="6" y1="7" x2="18" y2="19" gradientUnits="userSpaceOnUse">
+                    <stop stopColor="#38BDF8" />
+                    <stop offset="0.65" stopColor="#3B82F6" />
+                    <stop offset="1" stopColor="#1D4ED8" />
+                  </linearGradient>
+                </defs>
+                {/* Center flame leaf */}
+                <path
+                  d="M12 3C10.5 7.2 9.4 9.8 9.4 12.8C9.4 15.8 10.6 18.2 12 19.2C13.4 18.2 14.6 15.8 14.6 12.8C14.6 9.8 13.5 7.2 12 3Z"
+                  fill="url(#center-gold-grad)"
+                />
+                {/* Left wing leaf */}
+                <path
+                  d="M7.5 7.8C5.8 10.8 5.4 13.5 5.8 16C6.4 18.2 7.8 19.2 9.4 19.2C8.3 17.2 7.8 15.2 8.4 12.5C8.7 11 9.4 9.5 10.4 8.5C9 8 8.1 7.8 7.5 7.8Z"
+                  fill="url(#wing-blue-grad)"
+                />
+                {/* Right wing leaf */}
+                <path
+                  d="M16.5 7.8C18.2 10.8 18.6 13.5 18.2 16C17.6 18.2 16.2 19.2 14.6 19.2C15.7 17.2 16.2 15.2 15.6 12.5C15.3 11 14.6 9.5 13.6 8.5C15 8 15.9 7.8 16.5 7.8Z"
+                  fill="url(#wing-blue-grad)"
+                />
+              </svg>
+            </div>
+          </div>
+
+          {/* Heading & Subtitle */}
+          <h2 className="text-white font-bold text-[17px] text-center tracking-tight">
+            Kích hoạt bản quyền
+          </h2>
+          <p className="text-slate-400 text-xs text-center mt-1.5 mb-5 leading-normal">
+            Nhập license key được cấp để bắt đầu sử dụng Wukong Video Pro.
+          </p>
+
+          {/* License Key Input */}
+          <div className="space-y-1">
             <input
               type="text"
               value={licenseKey}
-              onChange={(e) => setLicenseKey(e.target.value)}
-              placeholder="VD: JACS-9B21-4CA0-D1D1 hoặc MH-XXXX-XXXX-XXXX"
-              className="w-full bg-[#070b14] border border-gray-700/90 focus:border-emerald-400 focus:ring-2 focus:ring-emerald-500/20 rounded-xl px-4 py-2.5 text-sm font-mono font-bold text-emerald-300 placeholder-gray-600 focus:outline-none transition-all shadow-inner tracking-wider"
+              onChange={(e) => setLicenseKey(e.target.value.toUpperCase())}
+              placeholder="WUKONG-XXXX-XXXX-XXXX-XXXX"
+              className="w-full bg-[#111622] border border-[#2c374e] focus:border-[#4f6ef7] focus:ring-1 focus:ring-[#4f6ef7] rounded-lg px-3.5 py-2.5 text-xs text-center font-mono tracking-widest text-slate-100 placeholder-slate-500 uppercase focus:outline-none transition-all shadow-inner"
               onKeyDown={(e) => {
                 if (e.key === 'Enter') handleVerify();
               }}
             />
           </div>
-        </div>
 
-        {/* Hướng dẫn nhận mã bản quyền từ Quản trị viên */}
-        <div className="p-3.5 bg-[#070b14]/70 border border-emerald-500/20 rounded-xl space-y-1.5 text-[11px] text-gray-300">
-          <div className="font-bold text-emerald-400 flex items-center gap-1.5 uppercase text-[10.5px] tracking-wider">
-            <span>🛡️ Quy trình cấp phép bản quyền máy trạm:</span>
+          {/* Checkbox "Lưu mã cho lần đăng nhập sau" */}
+          <div className="flex items-center justify-center gap-2 mt-3.5 mb-4">
+            <input
+              type="checkbox"
+              id="save-license-chk"
+              checked={saveKey}
+              onChange={(e) => setSaveKey(e.target.checked)}
+              className="w-3.5 h-3.5 rounded bg-[#111622] border-[#2c374e] accent-[#4f6ef7] cursor-pointer"
+            />
+            <label
+              htmlFor="save-license-chk"
+              className="text-slate-400 text-[11.5px] cursor-pointer select-none"
+            >
+              Lưu mã cho lần đăng nhập sau (không cần gõ lại)
+            </label>
           </div>
-          <div className="space-y-1 text-gray-400 pl-1 leading-relaxed">
-            <p>1. Nhấp nút <strong className="text-cyan-300">Sao chép</strong> mã phần cứng (HWID) ở trên.</p>
-            <p>2. Gửi mã HWID này cho <strong>Quản trị viên</strong> để đăng ký bản quyền theo máy.</p>
-            <p>3. Dán mã License Key nhận được vào ô bên trên rồi nhấn <strong>Xác thực &amp; Vào Studio</strong>.</p>
-          </div>
-        </div>
 
-        {/* Status Feedback Banner */}
-        {statusMessage && (
-          <div
-            className={`p-3 rounded-xl text-xs font-semibold flex items-center gap-2 animate-fadeIn ${
-              statusMessage.type === 'success'
-                ? 'bg-emerald-950/80 text-emerald-300 border border-emerald-400 shadow-[0_0_20px_rgba(16,185,129,0.2)]'
-                : 'bg-rose-950/80 text-rose-300 border border-rose-500/60'
-            }`}
-          >
-            {statusMessage.type === 'success' ? (
-              <Check size={16} className="text-emerald-400 flex-shrink-0" />
-            ) : (
-              <AlertCircle size={16} className="text-rose-400 flex-shrink-0" />
-            )}
-            <span>{statusMessage.text}</span>
-          </div>
-        )}
-
-        {/* Action Button: Glowing Cyber Emerald/Cyan */}
-        <button
-          onClick={() => handleVerify()}
-          disabled={isVerifying}
-          className={`w-full py-3.5 px-4 rounded-xl text-sm font-black tracking-wider uppercase flex items-center justify-center gap-2 transition-all cursor-pointer ${
-            isVerifying
-              ? 'bg-gray-800 text-gray-500 cursor-not-allowed border border-gray-700'
-              : 'bg-gradient-to-r from-emerald-500 via-teal-500 to-cyan-500 hover:from-emerald-400 hover:to-cyan-400 text-gray-950 shadow-[0_0_25px_rgba(16,185,129,0.35)] hover:shadow-[0_0_35px_rgba(16,185,129,0.55)] active:scale-[0.99]'
-          }`}
-        >
-          {isVerifying ? (
-            <>
-              <RefreshCw size={16} className="animate-spin text-gray-400" />
-              <span>Đang kiểm tra chứng chỉ bản quyền...</span>
-            </>
-          ) : (
-            <>
-              <Zap size={16} strokeWidth={2.5} />
-              <span>XÁC THỰC &amp; VÀO PEIPEI DUB STUDIO</span>
-            </>
+          {/* Status Message Feedback */}
+          {statusMessage && (
+            <div
+              className={`p-2.5 rounded-lg text-xs font-medium flex items-center justify-center gap-2 mb-3.5 animate-fadeIn ${
+                statusMessage.type === 'success'
+                  ? 'bg-emerald-950/80 text-emerald-300 border border-emerald-500/50'
+                  : 'bg-rose-950/80 text-rose-300 border border-rose-500/50'
+              }`}
+            >
+              {statusMessage.type === 'success' ? (
+                <Check size={14} className="text-emerald-400 flex-shrink-0" />
+              ) : (
+                <AlertCircle size={14} className="text-rose-400 flex-shrink-0" />
+              )}
+              <span>{statusMessage.text}</span>
+            </div>
           )}
-        </button>
-      </div>
 
-      {/* 3. Footer */}
-      <div className="relative z-10 px-6 py-3 bg-[#070b14] border-t border-emerald-500/15 flex items-center justify-between text-[11px] text-gray-400 flex-shrink-0">
-        <span>Chưa có Key? Liên hệ Quản trị viên để cấp quyền.</span>
-        <span className="text-emerald-400 font-mono text-[10.5px] flex items-center gap-1">
-          <Lock size={11} />
-          <span>Hardware AES-256</span>
-        </span>
-      </div>
+          {/* Primary Button "Kích hoạt" */}
+          <button
+            onClick={() => handleVerify()}
+            disabled={isVerifying}
+            className="w-full bg-[#4f6ef7] hover:bg-[#4360e8] active:bg-[#3852d4] text-white font-semibold text-xs py-2.5 rounded-lg transition-all shadow-md shadow-blue-600/25 cursor-pointer disabled:opacity-50 flex items-center justify-center gap-2"
+          >
+            {isVerifying ? (
+              <>
+                <Loader2 size={14} className="animate-spin" />
+                <span>Đang xác minh...</span>
+              </>
+            ) : (
+              <span>Kích hoạt</span>
+            )}
+          </button>
+
+          {/* Secondary Action Buttons Row */}
+          <div className="grid grid-cols-2 gap-2.5 mt-3">
+            <button
+              onClick={() => setShowPricingModal(true)}
+              className="flex items-center justify-center gap-1.5 bg-[#1d2437] hover:bg-[#252f48] text-slate-300 hover:text-white border border-[#2b364e] text-[11.5px] font-medium py-2.5 px-2 rounded-lg transition-all cursor-pointer"
+            >
+              <span>🛒</span>
+              <span>Xem bảng giá / Mua gói</span>
+            </button>
+            <button
+              onClick={() => setShowSupportModal(true)}
+              className="flex items-center justify-center bg-[#1d2437] hover:bg-[#252f48] text-slate-300 hover:text-white border border-[#2b364e] text-[11.5px] font-medium py-2.5 px-2 rounded-lg transition-all cursor-pointer"
+            >
+              <span>Liên hệ hỗ trợ</span>
+            </button>
+          </div>
+
+          {/* Footer Card Text */}
+          <p className="text-slate-500 text-[10.5px] text-center leading-relaxed mt-4 px-1">
+            Hotline/Zalo: 0914779977. License đã mua vẫn được giữ trên máy; màn hình này chỉ dùng để kích hoạt/xác minh lại khi cần.
+          </p>
+
+          {/* Quick Trial Helper for Dev / Testing */}
+          <div className="mt-3 pt-3 border-t border-white/[0.04] flex items-center justify-between text-[10px] text-slate-500">
+            <span className="font-mono">HWID: {hwid.slice(0, 15)}...</span>
+            <button
+              onClick={() => {
+                setLicenseKey('WUKONG-VIP9-8888-9999-PRO1');
+              }}
+              className="text-blue-400/80 hover:text-blue-300 transition-colors cursor-pointer"
+            >
+              + Dùng key thử
+            </button>
+          </div>
+        </div>
+      </main>
+
+      {/* 3. Empty bottom bar to balance header */}
+      {!asModal && <div className="h-6" />}
+
+      {/* ========================================================= */}
+      {/* POPUP 1: MODAL BẢNG GIÁ & MUA GÓI */}
+      {/* ========================================================= */}
+      {showPricingModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm animate-fadeIn">
+          <div className="w-full max-w-lg bg-[#161c28] border border-[#2d384e] rounded-2xl p-6 shadow-2xl text-slate-200">
+            <div className="flex items-center justify-between pb-3 border-b border-slate-800">
+              <div className="flex items-center gap-2">
+                <span className="text-lg">🛒</span>
+                <h3 className="text-base font-bold text-white">Bảng Giá Bản Quyền Wukong Video Pro</h3>
+              </div>
+              <button
+                onClick={() => setShowPricingModal(false)}
+                className="text-slate-400 hover:text-white p-1 rounded-lg hover:bg-slate-800"
+              >
+                <X size={16} />
+              </button>
+            </div>
+
+            <p className="text-xs text-slate-400 mt-2 mb-4">
+              Phần mềm được kích hoạt theo mã phần cứng thiết bị (HWID). Đảm bảo bản quyền vĩnh viễn và cập nhật miễn phí.
+            </p>
+
+            {/* Pricing Tiers Grid */}
+            <div className="grid grid-cols-3 gap-2.5 mb-4">
+              {/* Gói 1 Tháng */}
+              <div className="p-3 bg-[#111622] rounded-xl border border-slate-800 flex flex-col justify-between">
+                <div>
+                  <span className="text-[10px] px-1.5 py-0.5 rounded bg-slate-800 text-slate-400 font-semibold">
+                    Cơ bản
+                  </span>
+                  <h4 className="text-sm font-bold text-white mt-1.5">Gói 1 Tháng</h4>
+                  <p className="text-[11px] text-slate-400 mt-0.5">Dùng thử trải nghiệm</p>
+                </div>
+                <div className="mt-3 pt-2 border-t border-slate-800/80">
+                  <div className="text-sm font-bold text-blue-400">399.000 đ</div>
+                  <span className="text-[10px] text-slate-500">/ 30 ngày</span>
+                </div>
+              </div>
+
+              {/* Gói 1 Năm - Highlighted */}
+              <div className="p-3 bg-[#131c30] rounded-xl border border-blue-500/50 flex flex-col justify-between relative shadow-lg shadow-blue-500/10">
+                <span className="absolute -top-2 right-2 text-[9px] px-2 py-0.5 rounded-full bg-blue-600 text-white font-bold">
+                  Phổ biến nhất
+                </span>
+                <div>
+                  <span className="text-[10px] px-1.5 py-0.5 rounded bg-blue-500/20 text-blue-300 font-semibold">
+                    Tiết kiệm
+                  </span>
+                  <h4 className="text-sm font-bold text-white mt-1.5">Gói 1 Năm</h4>
+                  <p className="text-[11px] text-slate-400 mt-0.5">Sản xuất video thường xuyên</p>
+                </div>
+                <div className="mt-3 pt-2 border-t border-slate-800/80">
+                  <div className="text-sm font-bold text-blue-400">1.299.000 đ</div>
+                  <span className="text-[10px] text-slate-500">/ 365 ngày</span>
+                </div>
+              </div>
+
+              {/* Gói Vĩnh Viễn */}
+              <div className="p-3 bg-[#111622] rounded-xl border border-amber-500/40 flex flex-col justify-between">
+                <div>
+                  <span className="text-[10px] px-1.5 py-0.5 rounded bg-amber-500/20 text-amber-300 font-semibold">
+                    VIP Trọn đời
+                  </span>
+                  <h4 className="text-sm font-bold text-white mt-1.5">Gói Vĩnh Viễn</h4>
+                  <p className="text-[11px] text-slate-400 mt-0.5">Update tính năng trọn đời</p>
+                </div>
+                <div className="mt-3 pt-2 border-t border-slate-800/80">
+                  <div className="text-sm font-bold text-amber-400">2.499.000 đ</div>
+                  <span className="text-[10px] text-slate-500">Không giới hạn</span>
+                </div>
+              </div>
+            </div>
+
+            {/* Thông tin chuyển khoản & Hotline */}
+            <div className="p-3 bg-[#111622] rounded-xl border border-slate-800 text-xs space-y-1.5">
+              <div className="flex items-center justify-between">
+                <span className="text-slate-400">Hotline / Zalo kích hoạt ngay:</span>
+                <a
+                  href="https://zalo.me/0914779977"
+                  target="_blank"
+                  rel="noreferrer"
+                  className="font-bold text-blue-400 hover:underline flex items-center gap-1"
+                >
+                  <PhoneCall size={12} />
+                  0914.779.977
+                </a>
+              </div>
+              <div className="flex items-center justify-between text-slate-300">
+                <span className="text-slate-400">Ngân hàng:</span>
+                <span className="font-semibold">MB Bank - 0914779977</span>
+              </div>
+              <div className="flex items-center justify-between text-slate-300">
+                <span className="text-slate-400">Chủ tài khoản:</span>
+                <span className="font-semibold">WUKONG STUDIO</span>
+              </div>
+              <div className="flex items-center justify-between text-slate-300">
+                <span className="text-slate-400">Nội dung CK:</span>
+                <span className="font-mono text-cyan-300 font-bold">{hwid.slice(-8)}</span>
+              </div>
+            </div>
+
+            <div className="flex justify-end gap-2 mt-4 pt-3 border-t border-slate-800">
+              <button
+                onClick={() => setShowPricingModal(false)}
+                className="px-4 py-2 rounded-lg bg-slate-800 hover:bg-slate-700 text-xs font-medium text-slate-300 transition-colors cursor-pointer"
+              >
+                Đóng
+              </button>
+              <a
+                href="https://zalo.me/0914779977"
+                target="_blank"
+                rel="noreferrer"
+                className="px-4 py-2 rounded-lg bg-[#4f6ef7] hover:bg-[#4360e8] text-xs font-semibold text-white flex items-center gap-1.5 transition-colors cursor-pointer"
+              >
+                <MessageSquare size={13} />
+                <span>Nhắn Zalo Mua Gói</span>
+              </a>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* ========================================================= */}
+      {/* POPUP 2: MODAL LIÊN HỆ HỖ TRỢ */}
+      {/* ========================================================= */}
+      {showSupportModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm animate-fadeIn">
+          <div className="w-full max-w-md bg-[#161c28] border border-[#2d384e] rounded-2xl p-6 shadow-2xl text-slate-200">
+            <div className="flex items-center justify-between pb-3 border-b border-slate-800">
+              <div className="flex items-center gap-2">
+                <ShieldCheck size={18} className="text-blue-400" />
+                <h3 className="text-base font-bold text-white">Trung Tâm Hỗ Trợ Kỹ Thuật</h3>
+              </div>
+              <button
+                onClick={() => setShowSupportModal(false)}
+                className="text-slate-400 hover:text-white p-1 rounded-lg hover:bg-slate-800"
+              >
+                <X size={16} />
+              </button>
+            </div>
+
+            <div className="space-y-3 mt-4 text-xs">
+              <div className="p-3.5 bg-[#111622] rounded-xl border border-slate-800 space-y-2">
+                <div className="flex items-center justify-between">
+                  <span className="text-slate-400">Hotline / Zalo hỗ trợ:</span>
+                  <a
+                    href="https://zalo.me/0914779977"
+                    target="_blank"
+                    rel="noreferrer"
+                    className="font-bold text-blue-400 hover:underline flex items-center gap-1 text-sm font-mono"
+                  >
+                    0914.779.977
+                  </a>
+                </div>
+                <p className="text-slate-400 text-[11px] leading-relaxed">
+                  Thời gian hỗ trợ: <strong>8h00 - 23h30</strong> tất cả các ngày trong tuần (kể cả Thứ 7, Chủ Nhật và ngày Lễ).
+                </p>
+              </div>
+
+              {/* HWID copy card for quick support */}
+              <div className="p-3.5 bg-[#111622] rounded-xl border border-slate-800 space-y-1.5">
+                <div className="flex items-center justify-between">
+                  <span className="text-slate-400 text-[11px]">Mã máy tính của bạn (HWID):</span>
+                  <button
+                    onClick={() => {
+                      navigator.clipboard.writeText(hwid);
+                      setCopiedHwid(true);
+                      setTimeout(() => setCopiedHwid(false), 2000);
+                    }}
+                    className="text-[11px] text-blue-400 hover:text-blue-300 flex items-center gap-1 font-medium cursor-pointer"
+                  >
+                    {copiedHwid ? <Check size={12} className="text-emerald-400" /> : <Copy size={12} />}
+                    <span>{copiedHwid ? 'Đã sao chép' : 'Sao chép'}</span>
+                  </button>
+                </div>
+                <div className="font-mono text-cyan-300 text-xs font-bold tracking-wider bg-black/40 p-2 rounded border border-slate-800">
+                  {hwid}
+                </div>
+                <p className="text-[10.5px] text-slate-500">
+                  Gửi mã này qua Zalo để nhân viên cấp lại key khi bạn đổi máy tính hoặc cài lại Windows.
+                </p>
+              </div>
+            </div>
+
+            <div className="flex justify-end gap-2 mt-5 pt-3 border-t border-slate-800">
+              <button
+                onClick={() => setShowSupportModal(false)}
+                className="px-4 py-2 rounded-lg bg-slate-800 hover:bg-slate-700 text-xs font-medium text-slate-300 transition-colors cursor-pointer"
+              >
+                Đóng
+              </button>
+              <a
+                href="https://zalo.me/0914779977"
+                target="_blank"
+                rel="noreferrer"
+                className="px-4 py-2 rounded-lg bg-[#4f6ef7] hover:bg-[#4360e8] text-xs font-semibold text-white flex items-center gap-1.5 transition-colors cursor-pointer"
+              >
+                <MessageSquare size={13} />
+                <span>Mở Zalo 0914.779.977</span>
+              </a>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

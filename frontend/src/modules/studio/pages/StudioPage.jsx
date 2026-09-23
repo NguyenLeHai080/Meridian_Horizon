@@ -187,6 +187,7 @@ const StudioPageContent = () => {
 
   const handleDeactivateLicense = () => {
     localStorage.removeItem('peipei_license');
+    localStorage.removeItem('wukong_license');
     setLicenseInfo(null);
     setLicenseModalOpen(false);
   };
@@ -763,36 +764,21 @@ const StudioPageContent = () => {
         </div>
       </Modal>
 
-      {/* MODAL 4: THÔNG TIN BẢN QUYỀN */}
-      <Modal
-        isOpen={isLicenseModalOpen}
-        onClose={() => setLicenseModalOpen(false)}
-        title="Bản Quyền Máy Trạm & License"
-        subtitle="Quản lý mã bản quyền theo phần cứng thiết bị (HWID)"
-        size="md"
-        footer={
-          <>
-            <Button variant="danger" size="sm" onClick={handleDeactivateLicense}>
-              Hủy kích hoạt trên máy này
-            </Button>
-            <Button variant="outline" size="sm" onClick={() => setLicenseModalOpen(false)}>
-              Đóng
-            </Button>
-          </>
-        }
-      >
-        <div className="space-y-3 text-xs">
-          <div className="p-3 bg-[#0d1424] rounded-xl border border-gray-800 space-y-1">
-            <div className="text-gray-400">Mã phần cứng máy trạm (HWID):</div>
-            <div className="font-mono text-cyan-300 font-bold tracking-wider">{hwid}</div>
-          </div>
-          <div className="p-3 bg-[#0d1424] rounded-xl border border-gray-800 space-y-1">
-            <div className="text-gray-400">Gói bản quyền đang dùng:</div>
-            <div className="text-emerald-400 font-bold">{licenseInfo?.package_type || 'Gói Tiêu Chuẩn Pro'}</div>
-            <div className="text-gray-500 text-[11px]">Hạn sử dụng: {licenseInfo?.is_lifetime ? 'Vĩnh viễn (Lifetime VIP)' : `${licenseInfo?.days_remaining ?? 43} ngày`}</div>
+      {/* MODAL 4: KÍCH HOẠT & QUẢN LÝ BẢN QUYỀN (WUKONG VIDEO PRO) */}
+      {isLicenseModalOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm animate-fadeIn">
+          <div className="w-full max-w-[460px]">
+            <LicenseGatekeeper
+              asModal={true}
+              onClose={() => setLicenseModalOpen(false)}
+              onActivated={(updated) => {
+                setLicenseInfo(updated);
+                setLicenseModalOpen(false);
+              }}
+            />
           </div>
         </div>
-      </Modal>
+      )}
 
       {/* MODAL 5: TẢI VIDEO TỪ URL */}
       <Modal

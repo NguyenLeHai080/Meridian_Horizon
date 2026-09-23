@@ -129,8 +129,8 @@ async function createWindow() {
   const winWidth = hasActiveLicense ? 1340 : 560;
   const winHeight = hasActiveLicense ? 840 : 660;
   const winTitle = hasActiveLicense 
-    ? 'PeiPei Dub Studio 1.5.73 - Dịch & Lồng tiếng Video' 
-    : 'PeiPei Dub Studio 1.5.73 - Kích hoạt Bản quyền';
+    ? 'Wukong Video Pro - Dịch & Lồng tiếng Video AI' 
+    : 'Wukong Video Pro - Kích hoạt Bản quyền';
 
   mainWindow = new BrowserWindow({
     width: winWidth,
